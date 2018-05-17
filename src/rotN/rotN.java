@@ -42,12 +42,13 @@ public class rotN {
 				encodedChar = (char) ((originalChar+n)-122+96);
 				encoded += encodedChar;
 			}
+			// Space characters
 			else {
 				encodedChar = (char) 32;
 				encoded += encodedChar;
 			}
 		}
-		
+		// Prints out encoded message
 		System.out.println(encoded);
 	}
 }
