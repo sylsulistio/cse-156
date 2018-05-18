@@ -23,32 +23,32 @@ public class rotN {
 		for (; i < message.length(); i++) {
 			originalChar = (int) message.charAt(i);
 			// If the original character wouldn't cause any problems
-			if (originalChar < (90-n) && originalChar < 97 && originalChar != 32) {
+			if (originalChar > 64 && originalChar < (90-n) && originalChar < 97) {
 				encodedChar = (char) (originalChar+n);
 				encoded += encodedChar;
 			}
 			// If the original character needs to wrap around
-			else if (originalChar > (90-n) && originalChar < 97 && originalChar != 32) {
+			else if (originalChar > (90-n) && originalChar < 97) {
 				encodedChar = (char) ((originalChar+n)-90+64);
 				encoded += encodedChar;
 			}
 			// If the original character wouldn't cause any problems
-			else if (originalChar < (122-n) && originalChar != 32) {
+			else if (originalChar < (122-n) && originalChar >= 97) {
 				encodedChar = (char) (originalChar+n);
 				encoded += encodedChar;
 			}
 			// If the original character needs to wrap around
-			else if (originalChar > (122-n) && originalChar != 32) {
+			else if (originalChar > (122-n) && originalChar >= 97 && originalChar < 123) {
 				encodedChar = (char) ((originalChar+n)-122+96);
 				encoded += encodedChar;
 			}
-			// Space characters
+			// Keeping original character if 
 			else {
-				encodedChar = (char) 32;
+				encodedChar = (char) originalChar;
 				encoded += encodedChar;
 			}
 		}
-		// Prints out encoded message
+		
 		System.out.println(encoded);
 	}
 }
