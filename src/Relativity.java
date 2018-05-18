@@ -22,7 +22,7 @@ public class Relativity {
 		// v = 0.00c
 		System.out.printf("%-10s%-10s%-10s%-10s", "0.00c", 
 				format.format((t/(Math.sqrt(1)))) + "y",
-				format.format((l/(Math.sqrt(1)))) + "m",
+				format.format((l*(Math.sqrt(1)))) + "m",
 				format.format((m/(Math.sqrt(1)))) + "kg");
 		// v = 0.10c
 		System.out.printf("\n%-10s%-10s%-10s%-10s", "0.10c", 
