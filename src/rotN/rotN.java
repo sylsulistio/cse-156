@@ -23,12 +23,12 @@ public class rotN {
 		for (; i < message.length(); i++) {
 			originalChar = (int) message.charAt(i);
 			// If the original character wouldn't cause any problems
-			if (originalChar > 64 && originalChar < (90-n) && originalChar < 97) {
+			if (originalChar > 64 && originalChar < (90-n) && originalChar < 91) {
 				encodedChar = (char) (originalChar+n);
 				encoded += encodedChar;
 			}
 			// If the original character needs to wrap around
-			else if (originalChar > (90-n) && originalChar < 97) {
+			else if (originalChar > (90-n) && originalChar < 91) {
 				encodedChar = (char) ((originalChar+n)-90+64);
 				encoded += encodedChar;
 			}
