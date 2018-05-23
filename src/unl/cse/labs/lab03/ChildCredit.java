@@ -19,12 +19,12 @@ public class ChildCredit {
 		
 		String output = String.format("%-15s%-10s", "Child", "Amount");
 		String childInfo = "";
-		int totalCredit = 0;
+		double totalCredit = 0;
 		
 		Boolean first = true;
 		System.out.println(output);
 		for (Child c : arr) {
-			int credit = 500;
+			double credit = 500;
 			if (c.getAge() < 18 && first && c.getAge() >= 0) {
 				credit = 1000;
 				first = false;
@@ -34,10 +34,10 @@ public class ChildCredit {
 			}
 			totalCredit += credit;
 			childInfo = String.format("%1s %1s", c.getName(), ("("+ c.getAge() + ")"));
-			output = String.format("%-15s%-10s", childInfo, ("$" + credit + ".00"));
+			output = String.format("%-15s$%-10.2f", childInfo, credit);
 			System.out.println(output);
 		}
-		output = String.format("%-15s%-10s", "Total Credit:", ("$" + totalCredit + ".00"));
+		output = String.format("%-15s$%-10.2f", "Total Credit:", totalCredit);
 		System.out.println(output);
 	}
 }
