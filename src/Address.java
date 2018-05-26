@@ -6,6 +6,7 @@ public class Address {
 	private String zip;
 	private String country;
 	
+	// Constructor uses string array for easier implementation elsewhere
 	public Address(String[] array) {
 		String street = array[0];
 		String city = array[1];
@@ -38,15 +39,16 @@ public class Address {
 		}
 		else {
 			for (int i = 0; i < city.length(); i++) {
+				// If statements allow for hyphens and spaces in names
 				if ((city.toLowerCase()).charAt(i) < 97 &&
-						(city.toLowerCase()).charAt(i) != 45 &&
-						(city.toLowerCase()).charAt(i) != 32 ||
+					(city.toLowerCase()).charAt(i) != 45 &&
+					(city.toLowerCase()).charAt(i) != 32 ||
 					(city.toLowerCase()).charAt(i) > 122) {
 					validCity = false;
 					this.city = "(Invalid city)";	 
 					break;
-					}
 				}
+			}
 		}
 		if (validCity) {
 			this.city = city;
@@ -81,6 +83,9 @@ public class Address {
 	}
 
 	public void setZip(String zip) {
+		/* Validation is currently limited to zipcode length,
+		 * any ideas on how to further validate?
+		 */
 		if (zip.length() != 5 && zip.length() != 10) {
 			this.zip = "(Invalid zip code)";
 		}
@@ -96,19 +101,20 @@ public class Address {
 	public void setCountry(String country) {
 		boolean validCountry = true;
 		if (country == null) {
-			this.city = "(Country unknown)";
+			this.country = "(Country unknown)";
 		}
 		else {
 			for (int i = 0; i < country.length(); i++) {
+				// If statements allow for hyphens and spaces in names
 				if ((country.toLowerCase()).charAt(i) < 97 &&
-						(country.toLowerCase()).charAt(i) != 45 &&
-						(country.toLowerCase()).charAt(i) != 32 ||
+					(country.toLowerCase()).charAt(i) != 45 &&
+					(country.toLowerCase()).charAt(i) != 32 ||
 					(country.toLowerCase()).charAt(i) > 122) {
 					validCountry = false;
 					this.country = "(Invalid country)";	 
 					break;
-					}
 				}
+			}
 		}
 		if (validCountry) {
 			this.country = country;

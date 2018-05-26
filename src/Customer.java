@@ -28,15 +28,16 @@ public class Customer {
 		}
 		else {
 			for (int i = 0; i < custName.length(); i++) {
+				// If statements allow for hyphens and spaces in names
 				if ((custName.toLowerCase()).charAt(i) < 97 &&
-						(custName.toLowerCase()).charAt(i) != 45 &&
-						(custName.toLowerCase()).charAt(i) != 32||
+					(custName.toLowerCase()).charAt(i) != 45 &&
+					(custName.toLowerCase()).charAt(i) != 32||
 					(custName.toLowerCase()).charAt(i) > 122) {
 					this.custName = "(Invalid name)";
 					validName = false;
 					break;
-					}
 				}
+			}
 		}
 		if (validName) {
 			this.custName = custName;
@@ -69,6 +70,7 @@ public class Customer {
 		return type;
 	}
 	public void setType(char type) {
+		// Only two types of customers, so I used the specific characters to validate
 		if (type != 'G' && type != 'S') {
 			type = 'X';
 			System.out.println("Invalid customer type for " + custName);

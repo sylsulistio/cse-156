@@ -73,6 +73,8 @@ public class DataConverter {
 		int numCustomers = Integer.parseInt(s.nextLine().trim());
 		StringBuilder customerString = new StringBuilder();
 		
+		// Currently, this chunk is commented out so I can test the object and JSON output
+		
 //		for (int i = 0; i < numCustomers; i++) {
 //			String line = (s.nextLine().trim());
 //			String[] customerInfo = line.split(";");
@@ -111,11 +113,8 @@ public class DataConverter {
 			customers.add(customer);
 		}
 		
-		for (Customer str: customers) {
-			System.out.println(str.getName());
-		}
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		String json = gson.toJson(customers);
+		String json = "{ customers: " + gson.toJson(customers) + "}";
 		System.out.println(json);
 		s.close();
 		System.out.println("--------------------------------------------------");
