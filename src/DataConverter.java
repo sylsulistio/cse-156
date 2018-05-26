@@ -1,6 +1,10 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Scanner;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class DataConverter {
 	
@@ -67,28 +71,52 @@ public class DataConverter {
 		// Reading in file
 		Scanner s = new Scanner(new File("data/Customers.dat"));
 		int numCustomers = Integer.parseInt(s.nextLine().trim());
+		StringBuilder customerString = new StringBuilder();
+		
+//		for (int i = 0; i < numCustomers; i++) {
+//			String line = (s.nextLine().trim());
+//			String[] customerInfo = line.split(";");
+//			// Identification
+//			customerString.append("Customer: " + (i+1) + "\n");
+//			customerString.append("Customer Code: " + customerInfo[0] + "\n");
+//			customerString.append("Customer Type: " + customerInfo[1] + "\n");
+//			customerString.append("Customer Primary Contact: " + customerInfo[2] + "\n");
+//			customerString.append("Customer Name: " + customerInfo[3] + "\n");
+//			// Address
+//			String[] addressParts = customerInfo[4].split(",");
+//			customerString.append("Street: " + addressParts[0] + "\n");
+//			customerString.append("City: " + addressParts[1] + "\n");
+//			customerString.append("State: " + addressParts[2] + "\n");
+//			customerString.append("Zip Code: " + addressParts[3] + "\n");
+//			customerString.append("Country: " + addressParts[4] + "\n");
+//			
+//			System.out.println(customerString);
+//		}
+		
+		ArrayList<Customer> customers = new ArrayList<Customer>();
 		
 		for (int i = 0; i < numCustomers; i++) {
 			String line = (s.nextLine().trim());
 			String[] customerInfo = line.split(";");
 			// Identification
-			StringBuilder customerString = new StringBuilder();
-			customerString.append("Customer: " + (i+1) + "\n");
-			customerString.append("Customer Code: " + customerInfo[0] + "\n");
-			customerString.append("Customer Type: " + customerInfo[1] + "\n");
-			customerString.append("Customer Primary Contact: " + customerInfo[2] + "\n");
-			customerString.append("Customer Name: " + customerInfo[3] + "\n");
-			// Address
-			String[] addressParts = customerInfo[4].split(",");
-			customerString.append("Street: " + addressParts[0] + "\n");
-			customerString.append("City: " + addressParts[1] + "\n");
-			customerString.append("State: " + addressParts[2] + "\n");
-			customerString.append("Zip Code: " + addressParts[3] + "\n");
-			customerString.append("Country: " + addressParts[4] + "\n");
+			String customerCode = customerInfo[0];
+			char customerType = (customerInfo[1]).charAt(0);
+			String customerContact = customerInfo[2];
+			String customerName = customerInfo[3];
+			String[] addressArray = customerInfo[4].split(",");
+			Address customerAddress = new Address(addressArray);
 			
-			System.out.println(customerString);
+			Customer customer = new Customer(customerName, customerAddress, customerCode, 
+					customerContact, customerType);
+			customers.add(customer);
 		}
 		
+		for (Customer str: customers) {
+			System.out.println(str.getName());
+		}
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		String json = gson.toJson(customers);
+		System.out.println(json);
 		s.close();
 		System.out.println("--------------------------------------------------");
 	}
@@ -158,8 +186,8 @@ public class DataConverter {
 	}
 	
 	public static void main(String[] args) throws FileNotFoundException {
-		DataConverter.readPersons();
+		//DataConverter.readPersons();
 		DataConverter.readCustomers();
-		DataConverter.readProducts();
+		//DataConverter.readProducts();
 	}
 }

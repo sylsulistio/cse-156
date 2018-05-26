@@ -1,64 +1,54 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Customer {
-	private String firstName;
-	private String lastName;
-	private String[] address;
+	private String custName;
+	private Address address;
 	private String code;
 	private String contact;
 	private char type;
 	
-	public String getFirstName() {
-		return firstName;
+	public Customer(String custName, Address address, String code, String contact, char type) {
+		this.setName(custName);
+		this.code = code;
+		this.setAddress(address);
+		this.contact = contact;
+		this.setType(type);
 	}
-	public void setFirstName(String firstName) {
+	
+	public String getName() {
+		return custName;
+	}
+	public void setName(String custName) {
 		boolean validName = true;
-		if (firstName == null) {
-			this.firstName = "(First name unknown)";
+		if (custName == null) {
+			this.custName = "(First name unknown)";
 		}
 		else {
-			for (int i = 0; i < firstName.length(); i++) {
-				if ((firstName.toLowerCase()).charAt(i) < 97 ||
-					(firstName.toLowerCase()).charAt(i) > 122 &&
-					(firstName.toLowerCase()).charAt(i) != 45) {
-					this.firstName = "(Invalid name)";	 
+			for (int i = 0; i < custName.length(); i++) {
+				if ((custName.toLowerCase()).charAt(i) < 97 &&
+						(custName.toLowerCase()).charAt(i) != 45 &&
+						(custName.toLowerCase()).charAt(i) != 32||
+					(custName.toLowerCase()).charAt(i) > 122) {
+					this.custName = "(Invalid name)";
+					validName = false;
 					break;
 					}
 				}
 		}
 		if (validName) {
-			this.firstName = firstName;
+			this.custName = custName;
 		}
 	}
 	
-	public String getLastName() {
-		return lastName;
-	}
-	public void setLastName(String lastName) {
-		boolean validName = true;
-		if (lastName == null) {
-			this.lastName = "(First name unknown)";
-		}
-		else {
-			for (int i = 0; i < lastName.length(); i++) {
-				if ((lastName.toLowerCase()).charAt(i) < 97 ||
-					(lastName.toLowerCase()).charAt(i) > 122 &&
-					(lastName.toLowerCase()).charAt(i) != 45) {
-					this.lastName = "(Invalid name)";	 
-					break;
-					}
-				}
-		}
-		if (validName) {
-			this.lastName = lastName;
-		}
-	}
 	
-	public String[] getAddress() {
+	public Address getAddress() {
 		return address;
 	}
-	public void setAddress(String address) {
-		String[] addressArr = address.split(",");
-		this.address = addressArr;
+	public void setAddress(Address address) {
+		this.address = address;
 	}
 	
 	public String getCode() {
@@ -81,9 +71,10 @@ public class Customer {
 	public void setType(char type) {
 		if (type != 'G' && type != 'S') {
 			type = 'X';
-			System.out.printf("Invalid customer type for %1s %1s", this.firstName,
-					this.lastName);
+			System.out.println("Invalid customer type for " + custName);
 		}
-		this.type = type;
+		else {
+			this.type = type;
+		}
 	}
 }
