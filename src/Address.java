@@ -25,7 +25,7 @@ public class Address {
 	}
 
 	public void setStreet(String street) {
-		this.street = street;
+		this.street = street.trim();
 	}
 
 	public String getCity() {
@@ -33,6 +33,7 @@ public class Address {
 	}
 
 	public void setCity(String city) {
+		city = city.trim();
 		boolean validCity = true;
 		if (city == null) {
 			this.city = "(City unknown)";
@@ -60,6 +61,7 @@ public class Address {
 	}
 
 	public void setState(String state) {
+		state = state.trim();
 		boolean isState = true;
 		if (state.length() != 2) {
 			this.state = "(Invalid state)";
@@ -86,7 +88,8 @@ public class Address {
 		/* Validation is currently limited to zipcode length,
 		 * any ideas on how to further validate?
 		 */
-		if (zip.length() != 5 && zip.length() != 10) {
+		zip = zip.trim();
+		if (zip.length() != 5 && zip.length() != 10 && zip.length() != 7) {
 			this.zip = "(Invalid zip code)";
 		}
 		else {
@@ -99,6 +102,7 @@ public class Address {
 	}
 
 	public void setCountry(String country) {
+		country = country.trim();
 		boolean validCountry = true;
 		if (country == null) {
 			this.country = "(Country unknown)";

@@ -20,42 +20,75 @@ public class DataConverter {
 		Scanner s = new Scanner(new File("data/Persons.dat"));
 		int numPersons = Integer.parseInt(s.nextLine().trim());	
 		
+//		for (int i = 0; i < numPersons; i++) {
+//			String line = (s.nextLine().trim());
+//			String[] personInfo = line.split(";");
+//
+//			StringBuilder personString = new StringBuilder();
+//			personString.append("Person: " + (i+1) + "\n");
+//			personString.append("Person code: " + personInfo[0] + "\n");
+//			// Name
+//			String[] names = personInfo[1].split(",");
+//			personString.append("First name: " + names[1] + "\n");
+//			personString.append("Last name: " + names[0] + "\n");
+//			// Address
+//			String[] addressParts = personInfo[2].split(",");
+//			personString.append("Street: " + addressParts[0] + "\n");
+//			personString.append("City: " + addressParts[1] + "\n");
+//			personString.append("State: " + addressParts[2] + "\n");
+//			personString.append("Zip Code: " + addressParts[3] + "\n");
+//			personString.append("Country: " + addressParts[4] + "\n");
+//			// are there emails then?
+//			// If yes
+//			if(personInfo.length == 4) {
+//				personString.append("Person email(s): ");
+//				String[] personEmailArray = personInfo[3].split(",");
+//				// For each email, start a new line
+//				for (String email: personEmailArray) {
+//					personString.append(email + "\n");
+//				}
+//			
+//			} 
+//			// If no
+//			else {
+//				personString.append("Person emails: none\n");
+//			}
+//			
+//			System.out.println(personString);
+//		}
+		
+		ArrayList<Person> persons = new ArrayList<Person>();
+		
 		for (int i = 0; i < numPersons; i++) {
 			String line = (s.nextLine().trim());
 			String[] personInfo = line.split(";");
-
-			StringBuilder personString = new StringBuilder();
-			personString.append("Person: " + (i+1) + "\n");
-			personString.append("Person code: " + personInfo[0] + "\n");
-			// Name
-			String[] names = personInfo[1].split(",");
-			personString.append("First name: " + names[1] + "\n");
-			personString.append("Last name: " + names[0] + "\n");
-			// Address
-			String[] addressParts = personInfo[2].split(",");
-			personString.append("Street: " + addressParts[0] + "\n");
-			personString.append("City: " + addressParts[1] + "\n");
-			personString.append("State: " + addressParts[2] + "\n");
-			personString.append("Zip Code: " + addressParts[3] + "\n");
-			personString.append("Country: " + addressParts[4] + "\n");
-			// are there emails then?
-			// If yes
-			if(personInfo.length == 4) {
-				personString.append("Person email(s): ");
-				String[] personEmailArray = personInfo[3].split(",");
-				// For each email, start a new line
-				for (String email: personEmailArray) {
-					personString.append(email + "\n");
-				}
-			
-			} 
-			// If no
-			else {
-				personString.append("Person emails: none\n");
+			// Identification
+			String personCode = personInfo[0];
+			String personName = personInfo[1];
+			String[] addressArray = personInfo[2].split(",");
+			Address personAddress = new Address(addressArray);
+			String[] emailArray = new String[1];
+			// Email check
+			if (personInfo.length < 4) {
+				emailArray = null;
+			}
+			else if (personInfo[3].contains(",")) {
+				// if more than one
+				emailArray = personInfo[3].split(",");
+			}
+			else if (personInfo[3].contains("@")){
+				// if only one
+				emailArray[0] = personInfo[3];
 			}
 			
-			System.out.println(personString);
+			Person person = new Person(personCode, personName, personAddress, emailArray);
+			persons.add(person);
 		}
+		
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		String json = "{ customers: " + gson.toJson(persons) + "}";
+		System.out.println(json);
+		
 		s.close();
 		System.out.println("--------------------------------------------------");
 	}
@@ -185,8 +218,8 @@ public class DataConverter {
 	}
 	
 	public static void main(String[] args) throws FileNotFoundException {
-		//DataConverter.readPersons();
-		DataConverter.readCustomers();
+		DataConverter.readPersons();
+		//DataConverter.readCustomers();
 		//DataConverter.readProducts();
 	}
 }
