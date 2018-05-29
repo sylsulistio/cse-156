@@ -30,9 +30,10 @@ public class Customer {
 		}
 		else {
 			for (int i = 0; i < custName.length(); i++) {
-				// If statements allow for hyphens and spaces in names
+				// If statements allow for hyphens, apostrophes, and spaces in names
 				if ((custName.toLowerCase()).charAt(i) < 97 &&
 					(custName.toLowerCase()).charAt(i) != 45 &&
+					(custName.toLowerCase()).charAt(i) != 39 &&
 					(custName.toLowerCase()).charAt(i) != 32||
 					(custName.toLowerCase()).charAt(i) > 122) {
 					this.custName = "(Invalid name)";

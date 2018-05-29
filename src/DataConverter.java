@@ -69,12 +69,14 @@ public class DataConverter {
 		// XML printer
 		FileWriter xmlPrint = new FileWriter("data/Persons.xml");
 		StringBuilder xmlStr = new StringBuilder();
+		xmlStr.append("<?xml version=\"1.0\"?>\n<Persons>");
 		XStream xstream = new XStream();
 		for (Person p: persons) {
 			xmlStr.append("\n");
 			String personAsXML = xstream.toXML(p);
 			xmlStr.append(personAsXML);
 		}
+		xmlStr.append("</Persons>");
 		String finalString = xmlStr.toString();
 		xmlPrint.write(finalString);
 		
@@ -123,12 +125,14 @@ public class DataConverter {
 		// XML printer
 		FileWriter xmlPrint = new FileWriter("data/Customers.xml");
 		StringBuilder xmlStr = new StringBuilder();
+		xmlStr.append("<?xml version=\"1.0\"?>\n<Customers>");
 		XStream xstream = new XStream();
 		for (Customer p: customers) {
 			xmlStr.append("\n");
 			String customerAsXML = xstream.toXML(p);
 			xmlStr.append(customerAsXML);
 		}
+		xmlStr.append("</Customers>");
 		String finalString = xmlStr.toString();
 		xmlPrint.write(finalString);
 		
@@ -263,12 +267,14 @@ public class DataConverter {
 		// XML printer
 		FileWriter xmlPrint = new FileWriter("data/Products.xml");
 		StringBuilder xmlStr = new StringBuilder();
+		xmlStr.append("<?xml version=\"1.0\"?>\n<Products>");
 		XStream xstream = new XStream();
 		for (Product p: products) {
 			xmlStr.append("\n");
 			String productAsXML = xstream.toXML(p);
 			xmlStr.append(productAsXML);
 		}
+		xmlStr.append("</Products>");
 		String finalString = xmlStr.toString();
 		xmlPrint.write(finalString);
 		
