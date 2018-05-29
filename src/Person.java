@@ -66,7 +66,7 @@ public class Person {
 		this.mailAddress = mailAddress;
 	}
 	
-	//List of email addresses *Could use some help
+	//List of email addresses
 	public String[] getEmails() {
 		return emailList;
 	}

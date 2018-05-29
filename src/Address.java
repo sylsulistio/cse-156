@@ -1,4 +1,6 @@
-
+/* The purpose of this class is to break down the various 
+ * addresses contained within a data file, using the following order:
+ */
 public class Address {
 	private String street;
 	private String city;
@@ -20,18 +22,18 @@ public class Address {
 		this.setCountry(country);
 	}
 
+	// Street of address
 	public String getStreet() {
 		return street;
 	}
-
 	public void setStreet(String street) {
 		this.street = street.trim();
 	}
 
+	//city of address
 	public String getCity() {
 		return city;
 	}
-
 	public void setCity(String city) {
 		city = city.trim();
 		boolean validCity = true;
@@ -39,6 +41,7 @@ public class Address {
 			this.city = "(City unknown)";
 		}
 		else {
+			//city cannot haver numbers or other values besides typical language characters.
 			for (int i = 0; i < city.length(); i++) {
 				// If statements allow for hyphens and spaces in names
 				if ((city.toLowerCase()).charAt(i) < 97 &&
@@ -56,10 +59,10 @@ public class Address {
 		}
 	}
 
+	//Get the state, same rules apply
 	public String getState() {
 		return state;
 	}
-
 	public void setState(String state) {
 		state = state.trim();
 		boolean isState = true;
@@ -80,10 +83,10 @@ public class Address {
 		this.state = (state).toUpperCase();
 	}
 
+	//zip code, only valid numbers
 	public String getZip() {
 		return zip;
 	}
-
 	public void setZip(String zip) {
 		/* Validation is currently limited to zipcode length,
 		 * any ideas on how to further validate?
@@ -97,10 +100,10 @@ public class Address {
 		}
 	}
 
+	//Get country, same rules as states and cities
 	public String getCountry() {
 		return country;
 	}
-
 	public void setCountry(String country) {
 		country = country.trim();
 		boolean validCountry = true;

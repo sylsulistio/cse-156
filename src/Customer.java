@@ -3,6 +3,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+//Get information of customer and sets it, pretty standard stuff
 public class Customer {
 	private String custName;
 	private Address address;
@@ -18,6 +19,7 @@ public class Customer {
 		this.setType(type);
 	}
 	
+	//Name of customer
 	public String getName() {
 		return custName;
 	}
@@ -44,7 +46,7 @@ public class Customer {
 		}
 	}
 	
-	
+	//address of customer
 	public Address getAddress() {
 		return address;
 	}
@@ -52,6 +54,7 @@ public class Customer {
 		this.address = address;
 	}
 	
+	//customer code
 	public String getCode() {
 		return code;
 	}
@@ -59,6 +62,7 @@ public class Customer {
 		this.code = code;
 	}
 	
+	//Contact customer made with company
 	public String getContact() {
 		return contact;
 	}
@@ -66,6 +70,7 @@ public class Customer {
 		this.contact = contact;
 	}
 	
+	//Validate whether customer is general or student.
 	public char getType() {
 		return type;
 	}
