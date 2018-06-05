@@ -152,16 +152,16 @@ public class DataConverter {
 		int numSales = Integer.parseInt(s.nextLine().trim());
 		
 		String salesCode;
-		char salesType;
+		String salesType;
 		String salesStartDate;
 		String salesEndDate;
 		String salesDateTime;
 		String salesName;
 		String[] addressArray;
 		Address salesAddress;
-		String salesSeat;
+		String salesScrnNum;
 		double salesCost = 0;
-		Product product = new Product();
+		Product product = null;
 		
 		ArrayList<Product> products = new ArrayList<Product>();
 		
@@ -174,12 +174,12 @@ public class DataConverter {
 				// Movie tickets
 				case 'M':
 					salesCode = salesInfo[0];
-					salesType = (salesInfo[1]).charAt(0);
+					salesType = "" + (salesInfo[1]).charAt(0);
 					salesDateTime = salesInfo[2];
 					salesName = salesInfo[3];
 					addressArray = salesInfo[4].split(",");
 					salesAddress = new Address(addressArray);
-					salesSeat = salesInfo[5];
+					salesScrnNum = salesInfo[5];
 					// try-catch in case the number is invalid
 					try {
 						salesCost = Double.parseDouble(salesInfo[6]);
@@ -188,14 +188,14 @@ public class DataConverter {
 						System.out.println("Invalid product cost! Code: " + salesCode);
 					}
 					
-					product = new Product(salesCode, salesType, salesDateTime, salesName,
-							salesAddress, salesSeat, salesCost);
+					product = new MovieTicket(salesCode, salesType, salesDateTime, salesName,
+							salesAddress, salesScrnNum, salesCost);
 					break;
 					
 				// Season pass
 				case 'S':
 					salesCode = salesInfo[0];
-					salesType = (salesInfo[1]).charAt(0);
+					salesType = "" + (salesInfo[1]).charAt(0);
 					salesName = salesInfo[2];
 					salesStartDate = salesInfo[3];
 					salesEndDate = salesInfo[4];
@@ -207,14 +207,14 @@ public class DataConverter {
 						System.out.println("Invalid product cost! Code: " + salesCode);
 					}
 					
-					product = new Product(salesCode, salesType, salesName,
+					product = new SeasonPass(salesCode, salesType, salesName,
 							salesStartDate, salesEndDate, salesCost);
 					break;
 					
 				// Parking passes
 				case 'P':
 					salesCode = salesInfo[0];
-					salesType = (salesInfo[1]).charAt(0);
+					salesType = "" + (salesInfo[1]).charAt(0);
 					// try-catch in case the number is invalid
 					try {
 						salesCost = Double.parseDouble(salesInfo[2]);
@@ -223,13 +223,13 @@ public class DataConverter {
 						System.out.println("Invalid product cost! Code: " + salesCode);
 					}
 					
-					product = new Product(salesCode, salesType,salesCost);
+					product = new ParkingPass(salesCode, salesType,salesCost);
 					break;
 					
 				// Refreshments
 				case 'R':
 					salesCode = salesInfo[0];
-					salesType = (salesInfo[1]).charAt(0);
+					salesType = "" + (salesInfo[1]).charAt(0);
 					salesName = salesInfo[2];
 					// try-catch in case the number is invalid
 					try {
@@ -239,7 +239,7 @@ public class DataConverter {
 						System.out.println("Invalid product cost! Code: " + salesCode);
 					}
 					
-					product = new Product(salesCode, salesType, salesName,
+					product = new Refreshment(salesCode, salesType, salesName,
 							salesCost);
 					break;	
 				
