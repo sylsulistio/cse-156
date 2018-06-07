@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -10,6 +11,10 @@ import com.google.gson.GsonBuilder;
 import com.thoughtworks.xstream.XStream;
 
 public class DataConverter {
+	
+	private static ArrayList<Customer> customers;
+	private static ArrayList<Person> persons;
+	private static ArrayList<Product> products;
 	
 	/**
 	 * This reads in a file and prints the quantified information
@@ -21,7 +26,7 @@ public class DataConverter {
 		Scanner s = new Scanner(new File("data/Persons.dat"));
 		int numPersons = Integer.parseInt(s.nextLine().trim());
 		
-		ArrayList<Person> persons = new ArrayList<Person>();
+		persons = new ArrayList<Person>();
 		
 		for (int i = 0; i < numPersons; i++) {
 			String line = (s.nextLine().trim());
@@ -96,7 +101,7 @@ public class DataConverter {
 		Scanner s = new Scanner(new File("data/Customers.dat"));
 		int numCustomers = Integer.parseInt(s.nextLine().trim());
 		
-		ArrayList<Customer> customers = new ArrayList<Customer>();
+		customers = new ArrayList<Customer>();
 		
 		for (int i = 0; i < numCustomers; i++) {
 			String line = (s.nextLine().trim());
@@ -164,7 +169,7 @@ public class DataConverter {
 		double salesCost = 0;
 		Product product = null;
 		
-		ArrayList<Product> products = new ArrayList<Product>();
+		products = new ArrayList<Product>();
 		
 		for (int i = 0; i < numSales; i++) {
 			String line = (s.nextLine().trim());
@@ -285,15 +290,15 @@ public class DataConverter {
 	}
 	
 	/**
-	 * This reads in a file and prints the quantified information
-	 * for an invoice contained in the Invoice.dat file
+	 * This reads in the constructed ArrayLists as well as 
+	 * the Invoice.dat file and prints the quantified information
+	 * for an invoice to be stored in the Invoice.txt file
 	 * 
 	 * @throws FileNotFoundException
+	 * @return ArrayList<Invoice>
 	 */
 	 public static void readInvoices() throws FileNotFoundException {
-		System.out.println("invoices:\n--------------------------------------------------");
-		// Reading in file
-		Scanner s = new Scanner(new File("data/Invoices.dat"));
+		Scanner s = new Scanner("data/Invoices.dat");
 		int numInvoices = Integer.parseInt(s.nextLine().trim());
 		
 		String invoiceCode;
@@ -318,12 +323,25 @@ public class DataConverter {
 				invoiceDate, productList);
 			
 			invoices.add(invoice);
-		}	
+		}
+		
+		StringBuilder invoiceString = new StringBuilder();
+		
+		invoiceString.append("========================\n"
+							+ "Executive Summary Report\n"
+							+ "========================\n"
+							+ String.format("%-10s%-35s%-20s%-10s%-10s%-10s%-10s%-10s",
+							"Invoice", "Customer", "Salesperson", "Subtotal", "Fees", "Taxes", "Discount", "Total"));
+		//ArrayList<Invoice> invoices = readInvoices(new File("data/Invoices.dat"));
+		
+		System.out.println(invoiceString);
 	}
 	
 	public static void main(String[] args) throws IOException {
-		DataConverter.readPersons();
+		//DataConverter.readPersons();
 		DataConverter.readCustomers();
-		DataConverter.readProducts();
+		//DataConverter.readProducts();
+		
+		//writeInvoices();
 	}
 }
