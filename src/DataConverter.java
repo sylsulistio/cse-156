@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -281,6 +282,43 @@ public class DataConverter {
 		print.close();
 		xmlPrint.close();
 		s.close();
+	}
+	
+	/**
+	 * This reads in a file and prints the quantified information
+	 * for an invoice contained in the Invoice.dat file
+	 * 
+	 * @throws FileNotFoundException
+	 */
+	 public static void readInvoices() throws FileNotFoundException {
+		System.out.println("invoices:\n--------------------------------------------------");
+		// Reading in file
+		Scanner s = new Scanner(new File("data/Invoices.dat"));
+		int numInvoices = Integer.parseInt(s.nextLine().trim());
+		
+		String invoiceCode;
+		String customerCode;
+		String salesCode;
+		String invoiceDate;
+		String[] productList;
+		Invoice invoice = null;
+		
+		ArrayList<Invoice> invoices = new ArrayList<Invoice>();
+		
+		for (int i = 0; i < numInvoices; i++) {
+			String line = (s.nextLine().trim());
+			String[] invoiceInfo = line.split(";");
+			
+			invoiceCode = invoiceInfo[0];
+			customerCode = invoiceInfo[1];
+			salesCode = invoiceInfo[2];
+			invoiceDate = invoiceInfo[3];
+			productList = invoiceInfo[4].split(",");
+			invoice = new Invoice(invoiceCode, customerCode, salesCode,
+				invoiceDate, productList);
+			
+			invoices.add(invoice);
+		}	
 	}
 	
 	public static void main(String[] args) throws IOException {
