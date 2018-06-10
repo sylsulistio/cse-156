@@ -1,17 +1,15 @@
 //Get information of customer and sets it, pretty standard stuff
-public class Customer {
+public abstract class Customer {
 	private String custName;
 	private Address address;
 	private String code;
 	private String contact;
-	private String type;
 	
-	public Customer(String custName, Address address, String code, String contact, String type) {
+	public Customer(String custName, Address address, String code, String contact) {
 		this.setName(custName);
 		this.code = code;
 		this.setAddress(address);
 		this.contact = contact;
-		this.setType(type);
 	}
 	
 	//Name of customer
@@ -21,7 +19,7 @@ public class Customer {
 	public void setName(String custName) {
 		boolean validName = true;
 		if (custName == null) {
-			this.custName = "(First name unknown)";
+			this.custName = "(Name unknown)";
 		}
 		else {
 			for (int i = 0; i < custName.length(); i++) {
@@ -66,18 +64,7 @@ public class Customer {
 		this.contact = contact;
 	}
 	
-	//Validate whether customer is general or student.
-	public String getType() {
-		return type;
-	}
-	public void setType(String type) {
-		// Only two types of customers, so I used the specific characters to validate
-		if (!type.equals("G") && !type.equals("S")) {
-			type = "X";
-			System.out.println("Invalid customer type for " + custName);
-		}
-		else {
-			this.type = type;
-		}
-	}
+	public abstract String getType();
+	
+	public abstract void setType(String type);
 }

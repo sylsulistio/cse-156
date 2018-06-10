@@ -11,4 +11,5 @@ public interface Product {
 	double getCost();
 	void setQuantity(int quantity);
 	int getQuantity();
+	double getDiscount();
 }

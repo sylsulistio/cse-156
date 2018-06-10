@@ -9,6 +9,7 @@ public class SeasonPass implements Product{
 	private String endDate;
 	private double cost;
 	private int quantity;
+	private double discountedPrice;
 	
 	public SeasonPass(String salesCode, String salesType, String salesName, String salesStartDate, String salesEndDate,
 			double salesCost) {
@@ -155,5 +156,10 @@ public class SeasonPass implements Product{
 	@Override
 	public int getQuantity() {
 		return this.quantity;
+	}
+
+	@Override
+	public double getDiscount() {
+		return discountedPrice;
 	}
 }

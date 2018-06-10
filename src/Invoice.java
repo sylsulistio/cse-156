@@ -205,8 +205,8 @@ public class Invoice extends DataConverter {
 		this.subtotal += subtotal;
 	}
 
-	public void setFees(Customer customer) {
-		if (customer.getType().equals("General")) {
+	public void setFees() {
+		if (custType.equals("Student")) {
 			this.fees = 6.75;
 		}
 		if (hasPass == true) {
@@ -217,7 +217,8 @@ public class Invoice extends DataConverter {
 	public void setTaxes(double taxes) {
 		this.taxes = taxes;
 	}
-
+	
+	// Sets discount in amount of dollars discounted
 	public void setDiscount(double discount) {
 		if (hasParking && hasTicket) {
 			this.discount += discount;

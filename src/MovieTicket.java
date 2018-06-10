@@ -12,6 +12,7 @@ public class MovieTicket implements Product{
 	private String scrnNum;
 	private double cost;
 	private int quantity;
+	private double discountedPrice;
 	
 	public MovieTicket(String code, String type, String productName, String movieDateTime, Address address, String scrnNum, double cost) {
 		this.setCode(code);
@@ -58,9 +59,19 @@ public class MovieTicket implements Product{
 			isValid = false;
 		}
 		
+		// Checks for Tue/Thur discount
 		if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.TUESDAY ||
 			calendar.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY) {
 			isTueThur = true;
+		}
+		
+		// If date is valid, the discount is calculated
+		if (isValid && isTueThur) {
+			this.discountedPrice = this.cost * 0.93;
+		}
+		// If date is invalid, an indicator is stored
+		else if (!isValid) {
+			this.movieDateTime = "(Invalid date)";
 		}
 	}
 	
@@ -155,5 +166,16 @@ public class MovieTicket implements Product{
 	@Override
 	public int getQuantity() {
 		return this.quantity;
+	}
+
+	@Override
+	public double getDiscount() {
+		return discountedPrice;
+	}
+
+	@Override
+	public void setDiscount() {
+		// TODO Auto-generated method stub
+		
 	}
 }
