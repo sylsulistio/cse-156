@@ -9,5 +9,6 @@ public interface Product {
 	String getType();
 	void setCost(double cost);
 	double getCost();
-	
+	void setQuantity(int quantity);
+	int getQuantity();
 }

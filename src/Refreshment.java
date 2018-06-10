@@ -5,6 +5,7 @@ public class Refreshment implements Product{
 	private String type;
 	private double cost;
 	private String productName;
+	private int quantity;
 	
 	public Refreshment(String salesCode, String salesType, String salesName, double salesCost) {
 		this.setCode(salesCode);
@@ -59,6 +60,16 @@ public class Refreshment implements Product{
 	@Override
 	public String getCode() {
 		return code;
+	}
+
+	@Override
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
+	}
+	
+	@Override
+	public int getQuantity() {
+		return this.quantity;
 	}
 
 }

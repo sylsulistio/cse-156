@@ -322,21 +322,72 @@ public class DataConverter {
 			
 			invoices.add(invoice);
 		}
-		
+		writeInvoiceSummary(invoices);
+		//writeInvoiceIndividual(invoices);
+
+		s.close();
+	}
+	
+	public static void writeInvoiceSummary(ArrayList<Invoice> invoices) {
 		StringBuilder invoiceString = new StringBuilder();
 		
 		invoiceString.append("========================\n"
-							+ "Executive Summary Report\n"
-							+ "========================\n"
-							+ String.format("%-10s%-35s%-20s%-10s%-10s%-10s%-10s%-10s\n",
-							"Invoice", "Customer", "Salesperson", "Subtotal", "Fees", "Taxes", "Discount", "Total")
-							+ String.format("%-10s%-35s%-20s%-10s%-10s%-10s%-10s%-10s",
-							invoices.get(0).getInvoiceCode(), invoices.get(0).getCustomerCode(), invoices.get(0).getPersCode(), "Subtotal", "Fees", "Taxes", "Discount", "Total"));
+				   + "Executive Summary Report\n"
+				   + "========================\n"
+				   + String.format("%-10s%-35s%-20s%-10s%-10s%-10s%-10s%-10s\n",
+				   "Invoice", "Customer", "Salesperson", "Subtotal", "Fees", "Taxes", "Discount", "Total"));
 		
+		// Values for TOTALS row 
+		double totalSubtotal = 0;
+		double totalFees = 0;
+		double totalTaxes = 0;
+		double totalDiscount = 0;
+		double totalTotal = 0;
+		 
+		for (int i = 0; i < invoices.size(); i++) {
+			String invCode = invoices.get(i).getInvoiceCode();
+			String custName = invoices.get(i).getCustName() + " [" + invoices.get(i).getCustType() + "]";
+			String persName = invoices.get(i).getPersName();
+			double subtotal = invoices.get(i).getSubtotal();
+			double fees = invoices.get(i).getFees();
+			double taxes = invoices.get(i).getTaxes();
+			double discount = invoices.get(i).getDiscount();
+			double total = invoices.get(i).getTotal();
+			
+			totalSubtotal += subtotal;
+			totalFees += fees;
+			totalTaxes += taxes;
+		 	totalDiscount += discount;
+		 	totalTotal += total;
+			
+			invoiceString.append(String.format("%-10s%-35s%-20s%-10.2f%-10.2f%-10.2f%-10.2f%-10.2f\n",
+			invCode, custName, persName, subtotal, fees, taxes, discount, total));
+		}
 		
-		s.close();
+		invoiceString.append(String.format("%-65s%-10.2f%-10.2f%-10.2f%-10.2f%-10.2f",
+			"TOTALS", totalSubtotal, totalFees, totalTaxes, totalDiscount, totalTotal));
 		
 		System.out.println(invoiceString);
+	}
+				     
+	public static void writeInvoiceIndividual(ArrayList<Invoice> invoices) {
+		StringBuilder invoiceString = new StringBuilder();
+		invoiceString.append("Individual Invoice Detail Reports\n" + "==================================\n");
+		for (int i = 0; i < invoices.size(); i++) {
+			String invCode = invoices.get(i).getInvoiceCode();
+			String custName = invoices.get(i).getCustName() + "[" + invoices.get(i).getCustType() + "]";
+			String custType = "[" + invoices.get(i).getCustType() + ")";
+			String persName = invoices.get(i).getPersName();
+			double subtotal = invoices.get(i).getSubtotal();
+			double fees = invoices.get(i).getFees();
+			double taxes = invoices.get(i).getTaxes();
+			double discount = invoices.get(i).getDiscount();
+			double total = invoices.get(i).getTotal();
+			
+			invoiceString.append("Invoice " + invCode);
+			invoiceString.append("\n====================\n");
+			invoiceString.append(String.format("Salesperson: %1s\nCustomer Info: \n   %1s", persName, custName));
+		}
 	}
 
 	public static void main(String[] args) throws IOException {

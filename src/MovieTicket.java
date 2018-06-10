@@ -1,3 +1,5 @@
+import java.util.Calendar;
+import java.util.Date;
 
 public class MovieTicket implements Product{
 
@@ -5,9 +7,11 @@ public class MovieTicket implements Product{
 	private String type;
 	private String productName;
 	private String movieDateTime;
+
 	private Address address;
 	private String scrnNum;
 	private double cost;
+	private int quantity;
 	
 	public MovieTicket(String code, String type, String productName, String movieDateTime, Address address, String scrnNum, double cost) {
 		this.setCode(code);
@@ -24,6 +28,40 @@ public class MovieTicket implements Product{
 	
 	public String getMovieDateTime() {
 		return this.movieDateTime;
+	}
+	
+	public void setMovieDateTime(String movieDateTime) {
+		int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+		String[] dateTime = movieDateTime.split(" ");
+		String[] date = dateTime[0].split("-");
+		@SuppressWarnings("deprecation")
+		Date dateObj = new Date(Integer.parseInt(date[2]), Integer.parseInt(date[0]), Integer.parseInt(date[1]));
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(dateObj);
+		boolean isValid = true;
+		boolean isTueThur = false;
+		
+		// If year is less than 1900, or ten years later than current year,
+		// it is invalid
+		if (Integer.parseInt(date[0]) < 1900 || 
+			Integer.parseInt(date[0]) > (currentYear + 10)) {
+			isValid = false;
+		}
+		// If month value is under 1 or more than 12, it is invalid
+		else if (Integer.parseInt(date[1]) < 1 || 
+				 Integer.parseInt(date[1]) > 12) {
+			isValid = false;
+		}
+		// If date value is under 1 or more than 31, it is invalid
+		else if (Integer.parseInt(date[1]) < 1 || 
+				 Integer.parseInt(date[1]) > 31) {
+			isValid = false;
+		}
+		
+		if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.TUESDAY ||
+			calendar.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY) {
+			isTueThur = true;
+		}
 	}
 	
 	public Address getAddress() {
@@ -107,5 +145,15 @@ public class MovieTicket implements Product{
 	@Override
 	public String getCode() {
 		return code;
+	}
+	
+	@Override
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
+	}
+	
+	@Override
+	public int getQuantity() {
+		return this.quantity;
 	}
 }

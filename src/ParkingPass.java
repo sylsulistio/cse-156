@@ -4,6 +4,8 @@ public class ParkingPass implements Product{
 	private String code;
 	private String type;
 	private double cost;
+	private int quantity;
+	private String license;
 	
 	public ParkingPass(String salesCode, String salesType, double salesCost) {
 		this.setCode(salesCode);
@@ -49,6 +51,24 @@ public class ParkingPass implements Product{
 	@Override
 	public String getCode() {
 		return code;
+	}
+
+	@Override
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
+	}
+	
+	@Override
+	public int getQuantity() {
+		return this.quantity;
+	}
+
+	public String getLicense() {
+		return license;
+	}
+
+	public void setLicense(String license) {
+		this.license = license;
 	}
 
 }
