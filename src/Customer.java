@@ -1,17 +1,12 @@
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Scanner;
-
 //Get information of customer and sets it, pretty standard stuff
 public class Customer {
 	private String custName;
 	private Address address;
 	private String code;
 	private String contact;
-	private char type;
+	private String type;
 	
-	public Customer(String custName, Address address, String code, String contact, char type) {
+	public Customer(String custName, Address address, String code, String contact, String type) {
 		this.setName(custName);
 		this.code = code;
 		this.setAddress(address);
@@ -72,13 +67,13 @@ public class Customer {
 	}
 	
 	//Validate whether customer is general or student.
-	public char getType() {
+	public String getType() {
 		return type;
 	}
-	public void setType(char type) {
+	public void setType(String type) {
 		// Only two types of customers, so I used the specific characters to validate
-		if (type != 'G' && type != 'S') {
-			type = 'X';
+		if (!type.equals("G") && !type.equals("S")) {
+			type = "X";
 			System.out.println("Invalid customer type for " + custName);
 		}
 		else {

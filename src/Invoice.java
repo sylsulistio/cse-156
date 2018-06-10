@@ -1,20 +1,28 @@
+import java.util.ArrayList;
 import java.util.Calendar;
 
-public class Invoice {
+public class Invoice extends DataConverter {
 	//could we make a dedicated function to codes?
 	//See if there are any similarities we need to look for in these codes
 	private String invoiceCode;
 	private String customerCode;
-	private String salesCode;
+	private String persCode;
 	private String invoiceDate;
 	private String[] productList;
+	private String custName;
+	private String custType;
+	private String persName;
+	private String[] persEmails;
+	private Address custAddress;
+	private Address movieAddress;
+	private Address persAddress;
 	
 	//set all the information
-	public Invoice(String invoiceCode, String customerCode, String salesCode, 
+	public Invoice(String invoiceCode, String customerCode, String persCode, 
 		String invoiceDate, String[] productList) {
 		this.invoiceCode = invoiceCode;
-		this.invoiceCode = invoiceCode;
-		this.customerCode = customerCode;
+		this.setCustomerCode(customerCode);
+		this.setPersCode(persCode);
 		this.setInvoiceDate(invoiceDate);
 		this.setProducts(productList);
 	}
@@ -30,18 +38,34 @@ public class Invoice {
 	
 	//customer code	
 	public String getCustomerCode() {
-		return customerCode;
+		return custName;
 	}
 	public void setCustomerCode(String customerCode) {
-		this.customerCode = customerCode;
+		for (Customer c: customers) {
+			if (customerCode.equals(c.getCode())) {
+				this.custName = c.getName();
+				this.customerCode = c.getCode();
+				this.custType = c.getType();
+				this.custAddress = c.getAddress();
+				break;
+			}
+		}
 	}
 	
 	//sales code
-	public String getSalesCode() {
-		return salesCode;
+	public String getPersCode() {
+		return persName;
 	}
-	public void setSalesCode(String salesCode) {
-		this.salesCode = salesCode;
+	public void setPersCode(String persCode) {
+		for (Person p: persons) {
+			if (persCode.equals(p.getCode())) {
+				this.persName = p.getName();
+				this.persCode = p.getCode();
+				this.persAddress = p.getMail();
+				this.persEmails = p.getEmails();
+				break;
+			}
+		}
 	}
 	
 	//invoice date
@@ -79,18 +103,3 @@ public class Invoice {
 		this.productList = productList;
 	}
 }
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	

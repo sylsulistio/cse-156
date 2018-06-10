@@ -2,7 +2,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -12,9 +11,9 @@ import com.thoughtworks.xstream.XStream;
 
 public class DataConverter {
 	
-	private static ArrayList<Customer> customers;
-	private static ArrayList<Person> persons;
-	private static ArrayList<Product> products;
+	protected static ArrayList<Customer> customers;
+	protected static ArrayList<Person> persons;
+	protected static ArrayList<Product> products;
 	
 	/**
 	 * This reads in a file and prints the quantified information
@@ -66,29 +65,29 @@ public class DataConverter {
 		
 		// Printing out objects
 		// JSON printer
-		FileWriter print = new FileWriter("data/Persons.json");
-		
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		String json = "{ persons: " + gson.toJson(persons) + "}";
-		print.write(json);
-		
-		// XML printer
-		FileWriter xmlPrint = new FileWriter("data/Persons.xml");
-		StringBuilder xmlStr = new StringBuilder();
-		xmlStr.append("<?xml version=\"1.0\"?>\n<Persons>");
-		XStream xstream = new XStream();
-		for (Person p: persons) {
-			xmlStr.append("\n");
-			String personAsXML = xstream.toXML(p);
-			xmlStr.append(personAsXML);
-		}
-		xmlStr.append("</Persons>");
-		String finalString = xmlStr.toString();
-		xmlPrint.write(finalString);
-		
-		xmlPrint.close();
-		print.close();
-		s.close();
+//		FileWriter print = new FileWriter("data/Persons.json");
+//		
+//		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+//		String json = "{ persons: " + gson.toJson(persons) + "}";
+//		print.write(json);
+//		
+//		// XML printer
+//		FileWriter xmlPrint = new FileWriter("data/Persons.xml");
+//		StringBuilder xmlStr = new StringBuilder();
+//		xmlStr.append("<?xml version=\"1.0\"?>\n<Persons>");
+//		XStream xstream = new XStream();
+//		for (Person p: persons) {
+//			xmlStr.append("\n");
+//			String personAsXML = xstream.toXML(p);
+//			xmlStr.append(personAsXML);
+//		}
+//		xmlStr.append("</Persons>");
+//		String finalString = xmlStr.toString();
+//		xmlPrint.write(finalString);
+//		
+//		xmlPrint.close();
+//		print.close();
+//		s.close();
 	}
 	
 	/**
@@ -109,7 +108,7 @@ public class DataConverter {
 			
 			// Identification
 			String customerCode = customerInfo[0];
-			char customerType = (customerInfo[1]).charAt(0);
+			String customerType = customerInfo[1];
 			String customerContact = customerInfo[2];
 			String customerName = customerInfo[3];
 			String[] addressArray = customerInfo[4].split(",");
@@ -122,29 +121,29 @@ public class DataConverter {
 		
 		// Printing out objects
 		// JSON printer
-		FileWriter print = new FileWriter("data/Customers.json");
-		
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		String json = "{ customers: " + gson.toJson(customers) + "}";
-		print.write(json);
-		
-		// XML printer
-		FileWriter xmlPrint = new FileWriter("data/Customers.xml");
-		StringBuilder xmlStr = new StringBuilder();
-		xmlStr.append("<?xml version=\"1.0\"?>\n<Customers>");
-		XStream xstream = new XStream();
-		for (Customer p: customers) {
-			xmlStr.append("\n");
-			String customerAsXML = xstream.toXML(p);
-			xmlStr.append(customerAsXML);
-		}
-		xmlStr.append("</Customers>");
-		String finalString = xmlStr.toString();
-		xmlPrint.write(finalString);
-		
-		xmlPrint.close();
-		print.close();
-		s.close();
+//		FileWriter print = new FileWriter("data/Customers.json");
+//		
+//		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+//		String json = "{ customers: " + gson.toJson(customers) + "}";
+//		print.write(json);
+//		
+//		// XML printer
+//		FileWriter xmlPrint = new FileWriter("data/Customers.xml");
+//		StringBuilder xmlStr = new StringBuilder();
+//		xmlStr.append("<?xml version=\"1.0\"?>\n<Customers>");
+//		XStream xstream = new XStream();
+//		for (Customer p: customers) {
+//			xmlStr.append("\n");
+//			String customerAsXML = xstream.toXML(p);
+//			xmlStr.append(customerAsXML);
+//		}
+//		xmlStr.append("</Customers>");
+//		String finalString = xmlStr.toString();
+//		xmlPrint.write(finalString);
+//		
+//		xmlPrint.close();
+//		print.close();
+//		s.close();
 	}
 	
 	/**
@@ -264,29 +263,29 @@ public class DataConverter {
 		}
 		// Printing out objects
 		// JSON printer
-		FileWriter print = new FileWriter("data/Products.json");
-		
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		String json = "{ products: " + gson.toJson(products) + "}";
-		print.write(json);
-		
-		// XML printer
-		FileWriter xmlPrint = new FileWriter("data/Products.xml");
-		StringBuilder xmlStr = new StringBuilder();
-		xmlStr.append("<?xml version=\"1.0\"?>\n<Products>");
-		XStream xstream = new XStream();
-		for (Product p: products) {
-			xmlStr.append("\n");
-			String productAsXML = xstream.toXML(p);
-			xmlStr.append(productAsXML);
-		}
-		xmlStr.append("</Products>");
-		String finalString = xmlStr.toString();
-		xmlPrint.write(finalString);
-		
-		print.close();
-		xmlPrint.close();
-		s.close();
+//		FileWriter print = new FileWriter("data/Products.json");
+//		
+//		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+//		String json = "{ products: " + gson.toJson(products) + "}";
+//		print.write(json);
+//		
+//		// XML printer
+//		FileWriter xmlPrint = new FileWriter("data/Products.xml");
+//		StringBuilder xmlStr = new StringBuilder();
+//		xmlStr.append("<?xml version=\"1.0\"?>\n<Products>");
+//		XStream xstream = new XStream();
+//		for (Product p: products) {
+//			xmlStr.append("\n");
+//			String productAsXML = xstream.toXML(p);
+//			xmlStr.append(productAsXML);
+//		}
+//		xmlStr.append("</Products>");
+//		String finalString = xmlStr.toString();
+//		xmlPrint.write(finalString);
+//		
+//		print.close();
+//		xmlPrint.close();
+//		s.close();
 	}
 	
 	/**
@@ -298,8 +297,8 @@ public class DataConverter {
 	 * @return ArrayList<Invoice>
 	 */
 	 public static void readInvoices() throws FileNotFoundException {
-		Scanner s = new Scanner("data/Invoices.dat");
-		int numInvoices = Integer.parseInt(s.nextLine().trim());
+		Scanner s = new Scanner(new File("data/Invoices.dat"));
+		int numInvoices = Integer.parseInt((s.nextLine()).trim());
 		
 		String invoiceCode;
 		String customerCode;
@@ -307,7 +306,6 @@ public class DataConverter {
 		String invoiceDate;
 		String[] productList;
 		Invoice invoice = null;
-		
 		ArrayList<Invoice> invoices = new ArrayList<Invoice>();
 		
 		for (int i = 0; i < numInvoices; i++) {
@@ -330,18 +328,22 @@ public class DataConverter {
 		invoiceString.append("========================\n"
 							+ "Executive Summary Report\n"
 							+ "========================\n"
+							+ String.format("%-10s%-35s%-20s%-10s%-10s%-10s%-10s%-10s\n",
+							"Invoice", "Customer", "Salesperson", "Subtotal", "Fees", "Taxes", "Discount", "Total")
 							+ String.format("%-10s%-35s%-20s%-10s%-10s%-10s%-10s%-10s",
-							"Invoice", "Customer", "Salesperson", "Subtotal", "Fees", "Taxes", "Discount", "Total"));
-		//ArrayList<Invoice> invoices = readInvoices(new File("data/Invoices.dat"));
+							invoices.get(0).getInvoiceCode(), invoices.get(0).getCustomerCode(), invoices.get(0).getPersCode(), "Subtotal", "Fees", "Taxes", "Discount", "Total"));
+		
+		
+		s.close();
 		
 		System.out.println(invoiceString);
 	}
-	
+
 	public static void main(String[] args) throws IOException {
-		//DataConverter.readPersons();
+		DataConverter.readPersons();
 		DataConverter.readCustomers();
-		//DataConverter.readProducts();
+		DataConverter.readProducts();
 		
-		//writeInvoices();
+		readInvoices();
 	}
 }
