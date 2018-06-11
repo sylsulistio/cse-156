@@ -1,4 +1,3 @@
-
 public class General extends Customer {
 	
 	private String type;

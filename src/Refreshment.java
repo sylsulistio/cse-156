@@ -14,6 +14,13 @@ public class Refreshment implements Product{
 		this.setCost(salesCost);
 	}
 
+	public Refreshment(Refreshment product) {
+		this.setCode(product.getCode());
+		this.setType(product.getType());
+		this.setName(product.getName());
+		this.setCost(product.getCost());
+	}
+
 	public void setName(String productName) {
 		this.productName = productName;
 	}

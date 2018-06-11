@@ -1,3 +1,4 @@
+
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -5,40 +6,34 @@ public class Invoice extends DataConverter {
 	//could we make a dedicated function to codes?
 	//See if there are any similarities we need to look for in these codes
 	private String invoiceCode;
-	private String custCode;
-	private String persCode;
 	private String invoiceDate;
-	private String custName;
-	private String custType;
-	private String persName;
-	private String[] persEmails;
-	private Address custAddress;
-	private Address movieAddress;
-	private Address persAddress;
 	private double subtotal;
 	private double fees;
 	private double taxes;
 	private double discount;
 	private double total;
 	private ArrayList<Product> invoiceProducts = new ArrayList<Product>();
-	private boolean hasTicket = false;
-	private boolean hasParking = false;
-	private boolean hasPass = false;
+	private boolean hasTicket;
+	private boolean hasParking;
+	private boolean hasPass;
 	private double parkingDiscount;
 	private int passQuantity;
-	
+	private Customer customer;
+	private Person person;
+	private Person custPerson;
+
 	//set all the information
 	public Invoice(String invoiceCode, String customerCode, String persCode, 
 		String invoiceDate, String[] productList) {
+		parkingDiscount = 0;
 		this.invoiceCode = invoiceCode;
-		this.setCustCode(customerCode);
-		this.setPersCode(persCode);
+		this.setCustomer(customerCode);
+		this.setPerson(persCode);
 		this.setInvoiceDate(invoiceDate);
-		this.setProducts(productList);
 		hasTicket = false;
 		hasParking = false;
 		hasPass = false;
-		parkingDiscount = 0;
+		this.setProducts(productList);
 	}
 	
 	//getters and setters
@@ -50,61 +45,40 @@ public class Invoice extends DataConverter {
 		this.invoiceCode = invoiceCode;
 	}
 	
-	//customer code	
-	public String getCustCode() {
-		return custCode;
+	public Customer getCustomer() {
+		return customer;
 	}
-	public void setCustCode(String customerCode) {
+	public void setCustomer(String customerCode) {
 		for (Customer c: customers) {
 			if (customerCode.equals(c.getCode())) {
-				this.custName = c.getName();
-				this.custCode = c.getCode();
-				this.custType = c.getType();
-				this.custAddress = c.getAddress();
+				this.customer = c;
+				setCustPerson(c.getContact());
 				break;
 			}
 		}
 	}
 
-	public String getCustName() {
-		return custName;
-	}
-
-	public String getCustType() {
-		return custType;
-	}
-
-	public String getPersName() {
-		return persName;
-	}
-
-	public String[] getPersEmails() {
-		return persEmails;
-	}
-
-	public Address getCustAddress() {
-		return custAddress;
-	}
-
-	public Address getMovieAddress() {
-		return movieAddress;
-	}
-
-	public Address getPersAddress() {
-		return persAddress;
-	}
-
 	//sales code
-	public String getPersCode() {
-		return persCode;
+	public Person getPerson() {
+		return person;
 	}
-	public void setPersCode(String persCode) {
+	public void setPerson(String persCode) {
 		for (Person p: persons) {
 			if (persCode.equals(p.getCode())) {
-				this.persName = p.getName();
-				this.persCode = p.getCode();
-				this.persAddress = p.getMail();
-				this.persEmails = p.getEmails();
+				this.person = p;
+				break;
+			}
+		}
+	}
+
+	public Person getCustPerson() {
+		return custPerson;
+	}
+	
+	public void setCustPerson(String custPersonCode) {
+		for (Person p: persons) {
+			if (custPersonCode.equals(p.getCode())) {
+				this.custPerson = p;
 				break;
 			}
 		}
@@ -143,33 +117,34 @@ public class Invoice extends DataConverter {
 	}
 	public void setProducts(String[] productList) {
 		for (String p: productList) {
-			//This is an example of a productList:: fp12:2,3289:1:fp12,ff23:4
 			String[] productArray = p.split(":");
-			//check through all existing products to see what type of product it is.
+			// if only two in productArray, it is not a ParkingPass
 			if (productArray.length == 2) {
-				for(int i = 0; i < products.size(); i++) {
-					if (productArray[0].equals(products.get(i).getCode())) {
+				for(Product pr: products) {
+					// Looked through CarExample 3 to model this bit after, tried my best to adapt it
+					if (productArray[0].equals(pr.getCode())) {
 						
-						// Creating a new object to store a duplicate of the product to be placed in the array
-						Product product = products.get(i);
-						
-						// Setting quantity in each product object
-						product.setQuantity(Integer.parseInt(productArray[1]));
-						
-						// Adding product object to invoice ArrayList
-						invoiceProducts.add(product);
-						setSubtotal(product.getCost()*product.getQuantity());
-						
-						// If product is a MovieTicket, ticket boolean is set to true
-						// If product is a SeasonPass, both the ticket and pass booleans
-						// are set to true
-						if (product instanceof MovieTicket) {
+						if (pr instanceof MovieTicket) {
+							MovieTicket ticket = new MovieTicket((MovieTicket)pr);
+							ticket.setQuantity(Integer.parseInt(productArray[1]));
 							this.hasTicket = true;
+							invoiceProducts.add(ticket);
+							setSubtotal(ticket.getCost()*ticket.getQuantity());
 						}
-						else if (product instanceof SeasonPass) {
-							this.passQuantity += product.getQuantity();
+						else if (pr instanceof SeasonPass) {
+							SeasonPass pass = new SeasonPass((SeasonPass)pr);
+							pass.setQuantity(Integer.parseInt(productArray[1]));
+							this.passQuantity += pass.getQuantity();
 							this.hasTicket = true;
 							this.hasPass = true;
+							invoiceProducts.add(pass);
+							setSubtotal(pass.getCost()*pass.getQuantity());
+						}
+						else if (pr instanceof Refreshment) {
+							Refreshment refreshment = new Refreshment((Refreshment)pr);
+							refreshment.setQuantity(Integer.parseInt(productArray[1]));
+							invoiceProducts.add(refreshment);
+							setSubtotal(refreshment.getCost()*refreshment.getQuantity());
 						}
 					}
 				}
@@ -179,28 +154,26 @@ public class Invoice extends DataConverter {
 					if (productArray[0].equals(products.get(i).getCode())) {
 						
 						// Creating a new object to store a duplicate of the product to be placed in the array
-						Product product = products.get(i);
-						
-						// Setting quantity in each product object
+						ParkingPass product = new ParkingPass((ParkingPass)products.get(i));
 						product.setQuantity(Integer.parseInt(productArray[1]));
+						product.setLicense(productArray[2]);
 						
-						// Adding product object to invoice ArrayList
-						invoiceProducts.add(products.get(i));
-						setSubtotal(product.getCost()*product.getQuantity());
-						((ParkingPass)product).setLicense(productArray[2]);
+						invoiceProducts.add(product);
 						
 						// Parking is present, so discount amount is activated
 						this.setParkingDiscount(product.getCost());
 						
 						// Parking boolean is set to true
 						this.hasParking = true;
+						
+						
 					}
 				}
 			}
 		}
 		
 		// Checks status of customer
-		if (this.custType.equals("Student")) {
+		if (this.customer instanceof Student) {
 			setDiscount(0.08);
 		}
 		else {
@@ -210,6 +183,10 @@ public class Invoice extends DataConverter {
 		setFees();
 	}
 	
+	public boolean hasTicket() {
+		return hasTicket;
+	}
+
 	public double getSubtotal() {
 		return subtotal;
 	}
@@ -223,7 +200,7 @@ public class Invoice extends DataConverter {
 	}
 
 	public void setFees() {
-		if (custType.equals("Student")) {
+		if (this.customer instanceof Student) {
 			this.fees = 6.75;
 		}
 		if (hasPass == true) {
@@ -247,8 +224,8 @@ public class Invoice extends DataConverter {
 	}
 
 	public void setDiscount(double discount) {
-		if (hasParking && hasTicket) {
-			this.discount += parkingDiscount;
+		if ((hasParking && hasTicket) || (hasParking && hasPass)) {
+			this.parkingDiscount += discount;
 		}
 		else {
 			this.discount = discount;

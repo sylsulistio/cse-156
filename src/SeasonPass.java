@@ -20,6 +20,15 @@ public class SeasonPass implements Product{
 		this.setCost(salesCost);
 	}
 	
+	public SeasonPass(SeasonPass product) {
+		this.setCode(product.getCode());
+		this.setType(product.getType());
+		this.productName = product.getName();
+		this.setStartDate(product.getStartDate());
+		this.setEndDate(product.getEndDate());
+		this.cost = product.getCost();
+	}
+
 	public String getName() {
 		return this.productName;
 	}
@@ -67,7 +76,6 @@ public class SeasonPass implements Product{
 		int currentDate = Calendar.getInstance().get(Calendar.DATE);
 		String[] dateTime = endDate.split("-");
 		boolean isValid = true;
-		boolean isExpired = false;
 		
 		// If year is less than 1900, or ten years later than current year,
 		// it is invalid
@@ -86,21 +94,8 @@ public class SeasonPass implements Product{
 			isValid = false;
 		}
 		
-		if (Integer.parseInt(dateTime[0]) < currentYear) {
-			isExpired = true;
-		}
-		if (Integer.parseInt(dateTime[1]) < currentMonth) {
-			isExpired = true;
-		}
-		if (Integer.parseInt(dateTime[2]) < currentDate) {
-			isExpired = true;
-		}
-		
-		if (isValid && !isExpired) {
+		if (isValid) {
 			this.endDate = endDate;
-		}
-		else if (isValid && isExpired){
-			this.endDate = endDate + " (Expired)";
 		}
 		else if (!isValid) {
 			this.endDate = "(Invalid date)";

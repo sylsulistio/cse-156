@@ -13,6 +13,12 @@ public class ParkingPass implements Product{
 		this.setCost(salesCost);
 	}
 
+	public ParkingPass(ParkingPass product) {
+		this.setCode(product.getCode());
+		this.setType(product.getType());
+		this.setCost(product.getCost());
+	}
+
 	@Override
 	public void setType(String type) {
 		// code only allows for four specific types, otherwise it is set to I

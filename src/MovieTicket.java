@@ -14,15 +14,26 @@ public class MovieTicket implements Product{
 	private int quantity;
 	private double discountAmount;
 	
-	public MovieTicket(String code, String type, String productName, String movieDateTime, Address address, String scrnNum, double cost) {
+	public MovieTicket(String code, String type, String movieDateTime, String productName, Address address, String scrnNum, double cost) {
 		this.setCode(code);
 		this.setType(type);
 		this.productName = productName;
 		this.movieDateTime = movieDateTime;
 		this.address = address;
 		this.setScreenNum(scrnNum);
+		this.cost = cost;
 	}
 	
+	public MovieTicket(MovieTicket product) {
+		this.setCode(product.getCode());
+		this.setType(product.getType());
+		this.productName = product.getName();
+		this.movieDateTime = product.getMovieDateTime();
+		this.address = product.getAddress();
+		this.setScreenNum(product.getScreenNum());
+		this.cost = product.getCost();
+	}
+
 	public String getName() {
 		return this.productName;
 	}
@@ -67,7 +78,9 @@ public class MovieTicket implements Product{
 		
 		// If date is valid, the discount is calculated
 		if (isValid && isTueThur) {
-			this.discountAmount = this.cost * 0.07;
+			double discountAmount = this.cost * 0.07;
+			this.discountAmount = discountAmount;
+			this.cost -= discountAmount;
 		}
 		// If date is invalid, an indicator is stored
 		else if (!isValid) {
@@ -170,9 +183,5 @@ public class MovieTicket implements Product{
 
 	public double getDiscount() {
 		return discountAmount;
-	}
-
-	public void setDiscount(double discount) {
-		this.discountAmount += discount;
 	}
 }

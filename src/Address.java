@@ -7,6 +7,7 @@ public class Address {
 	private String state;
 	private String zip;
 	private String country;
+	private String line2;
 	
 	// Constructor uses string array for easier implementation elsewhere
 	public Address(String[] array) {
@@ -20,6 +21,7 @@ public class Address {
 		this.setState(state);
 		this.setZip(zip);
 		this.setCountry(country);
+		this.setLine2();
 	}
 
 	// Street of address
@@ -46,7 +48,8 @@ public class Address {
 				// If statements allow for hyphens and spaces in names
 				if ((city.toLowerCase()).charAt(i) < 97 &&
 					(city.toLowerCase()).charAt(i) != 45 &&
-					(city.toLowerCase()).charAt(i) != 32 ||
+					(city.toLowerCase()).charAt(i) != 39 &&
+					(city.toLowerCase()).charAt(i) != 32||
 					(city.toLowerCase()).charAt(i) > 122) {
 					validCity = false;
 					this.city = "(Invalid city)";	 
@@ -88,9 +91,6 @@ public class Address {
 		return zip;
 	}
 	public void setZip(String zip) {
-		/* Validation is currently limited to zipcode length,
-		 * any ideas on how to further validate?
-		 */
 		zip = zip.trim();
 		if (zip.length() != 5 && zip.length() != 10 && zip.length() != 7) {
 			this.zip = "(Invalid zip code)";
@@ -126,6 +126,14 @@ public class Address {
 		if (validCountry) {
 			this.country = country;
 		}
+	}
+
+	public String getLine2() {
+		return line2;
+	}
+
+	public void setLine2() {
+		this.line2 = this.city + ", " + this.state + " " + this.zip + " " + this.country;
 	}
 	
 }

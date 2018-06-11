@@ -2,7 +2,7 @@
 //this file reads product sales information based on the given parameters of a data file
 public interface Product {
 	
-	final String[] TYPE_ARRAY= {"M", "S", "R", "P"};
+	final String[] TYPE_ARRAY = {"M", "S", "R", "P"};
 	void setCode(String code);
 	String getCode();
 	void setType(String type);
