@@ -1,13 +1,9 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Scanner;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.thoughtworks.xstream.XStream;
 
 public class DataConverter {
 	
@@ -63,6 +59,8 @@ public class DataConverter {
 			persons.add(person);
 		}
 		
+		s.close();
+		
 		// Printing out objects
 		// JSON printer
 //		FileWriter print = new FileWriter("data/Persons.json");
@@ -114,10 +112,20 @@ public class DataConverter {
 			String[] addressArray = customerInfo[4].split(",");
 			Address customerAddress = new Address(addressArray);
 			
-			Customer customer = new Customer(customerName, customerAddress, customerCode, 
-					customerContact, customerType);
-			customers.add(customer);
+			Customer customer;
+			if (customerType.equals("S")) {
+				customer = new Student(customerName, customerAddress, customerCode, 
+						customerContact, customerType);
+				customers.add(customer);
+			}
+			else if (customerType.equals("G")) {
+				customer = new General(customerName, customerAddress, customerCode, 
+						customerContact, customerType);
+				customers.add(customer);
+			}
 		}
+		
+		s.close();
 		
 		// Printing out objects
 		// JSON printer
@@ -323,7 +331,7 @@ public class DataConverter {
 			invoices.add(invoice);
 		}
 		writeInvoiceSummary(invoices);
-		//writeInvoiceIndividual(invoices);
+		writeInvoiceIndividual(invoices);
 
 		s.close();
 	}
@@ -376,20 +384,108 @@ public class DataConverter {
 		for (int i = 0; i < invoices.size(); i++) {
 			String invCode = invoices.get(i).getInvoiceCode();
 			String custName = invoices.get(i).getCustName() + "[" + invoices.get(i).getCustType() + "]";
-			String custType = "[" + invoices.get(i).getCustType() + ")";
+			String custCode = "(" + invoices.get(i).getCustCode() + ")";		
 			String persName = invoices.get(i).getPersName();
+			
 			double subtotal = invoices.get(i).getSubtotal();
 			double fees = invoices.get(i).getFees();
 			double taxes = invoices.get(i).getTaxes();
 			double discount = invoices.get(i).getDiscount();
 			double total = invoices.get(i).getTotal();
 			
+			// String values for string construction
+			String subtotalString = "";
+			String feesString = "";
+			String taxesString = "";
+			String totalString = "";
+			
+			// DecimalFormat object for string construction
+			DecimalFormat df = new DecimalFormat();
+			df.setMaximumFractionDigits(2);
+			df.setMinimumFractionDigits(2);
+			
 			invoiceString.append("Invoice " + invCode);
 			invoiceString.append("\n====================\n");
-			invoiceString.append(String.format("Salesperson: %1s\nCustomer Info: \n   %1s", persName, custName));
+			//invoiceString.append(String.format("Salesperson: %1s\nCustomer Info: \n   %1s", persName, custName));
+			
+			invoiceString.append(String.format("\nCustomer Info: \n"));
+			invoiceString.append(String.format("    %-5s\n", custName));
+			invoiceString.append(String.format("    %-5s\n", custCode));
+			invoiceString.append(String.format("    %-5s\n", persName));
+			//print address invoiceString.append(String.format("%-10s"), /*street*/);
+			//print address invoiceString.append(String.format("%-10s"), /*city, state, zip code, country*/);
+			invoiceString.append(String.format("\n\n"));
+			
+			invoiceString.append(String.format("-------------------------------------------\n"));
+			invoiceString.append(String.format("%-10s%-55s%-15s%-10s%-15s\n",
+					   "Code", "Item", "Subtotal", "Tax", "Total"));
+			
+			//please forgive me for the most half assed coding attempt of my life thus far...
+			ArrayList<Product> productArray = invoices.get(i).getProducts();
+			
+			for (Product p: productArray) {
+				if (p instanceof MovieTicket) {
+					subtotal = p.getCost()*p.getQuantity();
+					taxes = p.getCost()*0.07;
+					total = p.getCost() + taxes;
+					invoiceString.append(String.format("%-10s%-55s @ %-10s%-40.2f%-10.2f%-10.2f\n", 
+							p.getCode(), "MovieTicket", ((MovieTicket) p).getName(), subtotal, taxes, total));
+					
+					invoiceString.append(String.format("%-10s (%s units @ $%s/unit)\n", 
+							((MovieTicket) p).getMovieDateTime(), p.getQuantity(), p.getCost()));
+				}
+				if (p instanceof ParkingPass) {
+					subtotalString = "$" + p.getCost()*p.getQuantity();
+					taxes = p.getCost()*0.07;
+					total = p.getCost() + taxes;
+					int freeNum = 0;
+					double parkingAmount = invoices.get(i).getParkingDiscount();
+					if (parkingAmount > 0) {
+						freeNum = (int)(parkingAmount/p.getCost());
+					}
+					invoiceString.append(String.format("%-10s%-55s %-1s units @ $%-1.2f/unit with %-1s free)\n", 
+							p.getCode(), "ParkingPass (" + ((ParkingPass)p).getLicense() + ")", "(" + p.getQuantity(), p.getCost(), subtotalString, freeNum));
+				}
+				if (p instanceof SeasonPass) {
+					subtotal = p.getCost()*p.getQuantity();
+					subtotalString = "$" + df.format(subtotal);
+					taxes = p.getCost()*0.07;
+					taxesString = "$" + df.format(taxes);
+					totalString = "$" + df.format(subtotal + taxes);
+					invoiceString.append(String.format("%-10s%-55s%-15s%-10s%-15s\n", p.getCode(), "SeasonPass - " + ((SeasonPass)p).getName(), subtotalString, taxesString, totalString));
+					invoiceString.append(String.format("%-10s%-1s unit(s) @ $%-1.2f/unit + $8.00 fee/unit)\n", "", "(" + p.getQuantity(), p.getCost()));							
+				}
+				if (p instanceof Refreshment) {
+					subtotal = p.getCost()*p.getQuantity();
+					taxes = p.getCost()*0.07;
+					total = p.getCost() + taxes;
+					boolean hasDiscount = false;
+					String discountString = "";
+					if (hasDiscount) {
+						discountString = "with 5% off";
+					}
+					invoiceString.append(String.format("%-10s%-55s (%s units @ $%s/unit %1s)%-10s%-10s%-10s\n", 
+							p.getCode(), ((Refreshment) p).getName() , p.getQuantity(), p.getCost(), discountString, subtotal, taxes, total));
+				}
+			}
+			invoiceString.append(String.format("====================================\n"));
+			invoiceString.append(String.format("SUB-TOTALS %-40s %-10s %-10s\n", subtotal, taxes, total));
+			if (invoices.get(i).getCustType().equals("Student")) {
+				invoiceString.append(String.format("DISCOUNT: (STUDENT & NO TAX) %-40f\n", discount));
+				invoiceString.append(String.format("ADDITIONAL FEE (Student) %-40f\n", fees));
+			}
+			
+			subtotal = invoices.get(i).getSubtotal();
+			fees = invoices.get(i).getFees();
+			taxes = invoices.get(i).getTaxes();
+			discount = invoices.get(i).getDiscount();
+			total = invoices.get(i).getTotal();
+			
+			invoiceString.append(String.format("TOTAL %-50f\n\n\n", total));
+			invoiceString.append("Thank you for your purchase!");
 		}
+		System.out.println(invoiceString);
 	}
-
 	public static void main(String[] args) throws IOException {
 		DataConverter.readPersons();
 		DataConverter.readCustomers();
