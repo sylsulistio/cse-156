@@ -426,7 +426,7 @@ public class DataConverter {
 				if (p instanceof MovieTicket) {
 					subtotal = p.getCost()*p.getQuantity();
 					subtotalString = "$" + df.format(subtotal);
-					taxes = p.getCost()*0.06;
+					taxes = subtotal*0.06;
 					taxesString = "$" + df.format(taxes);
 					totalString = "$" + df.format(subtotal + taxes);
 					String movieString = "MovieTicket '" + ((MovieTicket) p).getName() + "' @ " + ((MovieTicket)p).getAddress().getStreet();
@@ -437,37 +437,47 @@ public class DataConverter {
 							"", movieString));
 				}
 				if (p instanceof ParkingPass) {
-					subtotal = p.getCost()*p.getQuantity();
-					subtotalString = "$" + df.format(subtotal);
-					taxes = p.getCost()*0.04;
-					taxesString = "$" + df.format(taxes);
-					totalString = "$" + df.format(subtotal + taxes);
 					int freeNum = 0;
+					subtotal = p.getCost()*p.getQuantity();
+					double initialCost = p.getCost();
+					String freeParking = "";
 					double parkingAmount = invoices.get(i).getParkingDiscount();
-					String parkingString = "ParkingPass (" + ((ParkingPass)p).getLicense() + ") (" + p.getQuantity() + " unit(s) @ $"
-											+ df.format(p.getCost()) + "/unit)";
 					if (parkingAmount > 0) {
 						freeNum = (int)(parkingAmount/p.getCost());
-						parkingString += "(" + freeNum + " free)";
+						freeParking = "(" + freeNum + " free)";
 					}
+					parkingAmount = subtotal + taxes - parkingAmount;
+					if (parkingAmount < 0) {
+						parkingAmount = 0;
+						p.setCost(0);
+						subtotal = 0;
+					}
+					else {
+						subtotal = parkingAmount - taxes;
+					}
+					subtotalString = "$" + df.format(subtotal);
+					taxes = subtotal*0.04;
+					taxesString = "$" + df.format(taxes);
+					totalString = "$" + df.format(parkingAmount);
+					String parkingString = "ParkingPass (" + ((ParkingPass)p).getLicense() + ") (" + p.getQuantity() + " unit(s) @ $"
+											+ df.format(initialCost) + "/unit)" + freeParking; //freeParking string only shows if there is indeed free parking
 					invoiceString.append(String.format("%-10s%-65s %-15s%-10s%-15s\n", 
 							p.getCode(), parkingString, subtotalString, taxesString, totalString));
 				}
 				if (p instanceof SeasonPass) {
 					subtotal = p.getCost()*p.getQuantity();
 					subtotalString = "$" + df.format(subtotal);
-					taxes = p.getCost()*0.06;
+					taxes = subtotal*0.06;
 					taxesString = "$" + df.format(taxes);
 					totalString = "$" + df.format(subtotal + taxes);
 					invoiceString.append(String.format("%-10s%-65s %-15s%-10s%-15s\n", p.getCode(), "SeasonPass - " + ((SeasonPass)p).getName(), subtotalString, taxesString, totalString));
 					invoiceString.append(String.format("%-10s%-1s unit(s) @ $%-1.2f/unit + $8.00 fee/unit)\n", "", "(" + p.getQuantity(), p.getCost()));							
 				}
 				if (p instanceof Refreshment) {
-					System.out.println(p.getQuantity());
 					String refreshmentString = ((Refreshment) p).getName() + " (" + p.getQuantity() + " units @ $" + df.format(p.getCost()) + "/unit)";
 					subtotal = p.getCost()*p.getQuantity();
 					subtotalString = "$" + df.format(subtotal);
-					taxes = p.getCost()*0.04;
+					taxes = subtotal*0.04;
 					taxesString = "$" + df.format(taxes);
 					totalString = "$" + df.format(subtotal + taxes);
 					if (invoices.get(i).hasTicket()) {

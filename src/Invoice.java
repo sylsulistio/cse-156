@@ -21,6 +21,7 @@ public class Invoice extends DataConverter {
 	private Customer customer;
 	private Person person;
 	private Person custPerson;
+	private int ticketQuantity;
 
 	//set all the information
 	public Invoice(String invoiceCode, String customerCode, String persCode, 
@@ -127,9 +128,13 @@ public class Invoice extends DataConverter {
 						if (pr instanceof MovieTicket) {
 							MovieTicket ticket = new MovieTicket((MovieTicket)pr);
 							ticket.setQuantity(Integer.parseInt(productArray[1]));
+							this.ticketQuantity += ticket.getQuantity();
 							this.hasTicket = true;
 							invoiceProducts.add(ticket);
 							setSubtotal(ticket.getCost()*ticket.getQuantity());
+							if (customer instanceof General) {
+								setTaxes(0.06, ticket);
+							}
 						}
 						else if (pr instanceof SeasonPass) {
 							SeasonPass pass = new SeasonPass((SeasonPass)pr);
@@ -139,12 +144,18 @@ public class Invoice extends DataConverter {
 							this.hasPass = true;
 							invoiceProducts.add(pass);
 							setSubtotal(pass.getCost()*pass.getQuantity());
+							if (customer instanceof General) {
+								setTaxes(0.06, pass);
+							}
 						}
 						else if (pr instanceof Refreshment) {
 							Refreshment refreshment = new Refreshment((Refreshment)pr);
 							refreshment.setQuantity(Integer.parseInt(productArray[1]));
 							invoiceProducts.add(refreshment);
 							setSubtotal(refreshment.getCost()*refreshment.getQuantity());
+							if (customer instanceof General) {
+								setTaxes(0.04, refreshment);
+							}
 						}
 					}
 				}
@@ -154,14 +165,17 @@ public class Invoice extends DataConverter {
 					if (productArray[0].equals(products.get(i).getCode())) {
 						
 						// Creating a new object to store a duplicate of the product to be placed in the array
-						ParkingPass product = new ParkingPass((ParkingPass)products.get(i));
-						product.setQuantity(Integer.parseInt(productArray[1]));
-						product.setLicense(productArray[2]);
+						ParkingPass parking = new ParkingPass((ParkingPass)products.get(i));
+						parking.setQuantity(Integer.parseInt(productArray[1]));
+						parking.setLicense(productArray[2]);
 						
-						invoiceProducts.add(product);
+						invoiceProducts.add(parking);
+						if (customer instanceof General) {
+							setTaxes(0.04, parking);
+						}
 						
 						// Parking is present, so discount amount is activated
-						this.setParkingDiscount(product.getCost());
+						this.setParkingDiscount(parking.getCost());
 						
 						// Parking boolean is set to true
 						this.hasParking = true;
@@ -180,6 +194,7 @@ public class Invoice extends DataConverter {
 			setDiscount(0);
 		}
 		
+		// Setting any necessary fees before ending method
 		setFees();
 	}
 	
@@ -207,16 +222,15 @@ public class Invoice extends DataConverter {
 			double totalFees = passQuantity * 8;
 			this.fees += totalFees;
 		}
-		
-		this.subtotal += this.fees;
 	}
 
 	public double getTaxes() {
 		return taxes;
 	}
 
-	public void setTaxes(double taxes) {
-		this.taxes = taxes;
+	public void setTaxes(double taxRate, Product product) {
+		double taxes = product.getCost()*taxRate;
+		this.taxes += taxes;
 	}
 
 	public double getDiscount() {
@@ -245,6 +259,6 @@ public class Invoice extends DataConverter {
 	}
 
 	public void setParkingDiscount(double parkingDiscount) {
-		this.parkingDiscount = parkingDiscount;
+		this.parkingDiscount = (passQuantity+ticketQuantity)*parkingDiscount;
 	}
 }
