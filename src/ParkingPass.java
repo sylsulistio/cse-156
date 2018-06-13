@@ -76,5 +76,4 @@ public class ParkingPass implements Product{
 	public void setLicense(String license) {
 		this.license = license;
 	}
-
 }

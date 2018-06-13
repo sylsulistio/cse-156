@@ -352,6 +352,11 @@ public class DataConverter {
 		double totalDiscount = 0;
 		double totalTotal = 0;
 		 
+		// DecimalFormat object for string construction
+		DecimalFormat df = new DecimalFormat();
+		df.setMaximumFractionDigits(2);
+		df.setMinimumFractionDigits(2);
+		
 		for (int i = 0; i < invoices.size(); i++) {
 			String invCode = invoices.get(i).getInvoiceCode();
 			String custName = invoices.get(i).getCustomer().getName() + " [" + invoices.get(i).getCustomer().getType() + "]";
@@ -368,8 +373,8 @@ public class DataConverter {
 		 	totalDiscount += discount;
 		 	totalTotal += total;
 			
-			invoiceString.append(String.format("%-10s%-35s%-20s%-10.2f%-10.2f%-10.2f%-10.2f%-10.2f\n",
-			invCode, custName, persName, subtotal, fees, taxes, discount, total));
+			invoiceString.append(String.format("%-10s%-35s%-20s%-10s%-10s%-10s%-10s%-10s\n",
+			invCode, custName, persName, "$" + df.format(subtotal), "$" + df.format(fees), "$" + df.format(taxes), "$-" + df.format(discount), "$" + df.format(total)));
 		}
 		
 		invoiceString.append(String.format("%-65s%-10.2f%-10.2f%-10.2f%-10.2f%-10.2f",
@@ -430,41 +435,46 @@ public class DataConverter {
 					taxesString = "$" + df.format(taxes);
 					totalString = "$" + df.format(subtotal + taxes);
 					String movieString = "MovieTicket '" + ((MovieTicket) p).getName() + "' @ " + ((MovieTicket)p).getAddress().getStreet();
-					invoiceString.append(String.format("%-10s%-65s %-15s%-10s%-15s\n", 
-							p.getCode(), movieString, subtotalString, taxesString, totalString));
+					invoiceString.append(String.format("%-10s%-65s %-15s%-10s%-15s\n", p.getCode(), movieString, subtotalString, 
+																					   taxesString, totalString));
 					movieString = ((MovieTicket) p).getMovieDateTime() + " (" + p.getQuantity() + " units @ $" + df.format(p.getCost()) + "/unit)";
-					invoiceString.append(String.format("%-10s%-65s\n", 
-							"", movieString));
+					invoiceString.append(String.format("%-10s%-65s\n", "", movieString));
 				}
-				if (p instanceof ParkingPass) {
+				else if (p instanceof ParkingPass) {
 					int freeNum = 0;
 					subtotal = p.getCost()*p.getQuantity();
 					double initialCost = p.getCost();
 					String freeParking = "";
 					double parkingAmount = invoices.get(i).getParkingDiscount();
+					// If there is a parking discount at all
 					if (parkingAmount > 0) {
 						freeNum = (int)(parkingAmount/p.getCost());
 						freeParking = "(" + freeNum + " free)";
 					}
+					// Sets the parking amount to how much the customer would actually pay after discount and taxes
 					parkingAmount = subtotal + taxes - parkingAmount;
+					// If the parking discount is higher than what they actually used, everything is set to zero
 					if (parkingAmount < 0) {
+						// Sets boolean in object to false for later use
+						invoices.get(i).setParkingDeficit(false);
 						parkingAmount = 0;
 						p.setCost(0);
 						subtotal = 0;
 					}
+					// Else make the subtotal of parking whatever the customer would pay before taxes
 					else {
 						subtotal = parkingAmount - taxes;
 					}
 					subtotalString = "$" + df.format(subtotal);
 					taxes = subtotal*0.04;
 					taxesString = "$" + df.format(taxes);
-					totalString = "$" + df.format(parkingAmount);
+					totalString = "$" + df.format(subtotal + taxes);
 					String parkingString = "ParkingPass (" + ((ParkingPass)p).getLicense() + ") (" + p.getQuantity() + " unit(s) @ $"
 											+ df.format(initialCost) + "/unit)" + freeParking; //freeParking string only shows if there is indeed free parking
 					invoiceString.append(String.format("%-10s%-65s %-15s%-10s%-15s\n", 
 							p.getCode(), parkingString, subtotalString, taxesString, totalString));
 				}
-				if (p instanceof SeasonPass) {
+				else if (p instanceof SeasonPass) {
 					subtotal = p.getCost()*p.getQuantity();
 					subtotalString = "$" + df.format(subtotal);
 					taxes = subtotal*0.06;
@@ -473,7 +483,7 @@ public class DataConverter {
 					invoiceString.append(String.format("%-10s%-65s %-15s%-10s%-15s\n", p.getCode(), "SeasonPass - " + ((SeasonPass)p).getName(), subtotalString, taxesString, totalString));
 					invoiceString.append(String.format("%-10s%-1s unit(s) @ $%-1.2f/unit + $8.00 fee/unit)\n", "", "(" + p.getQuantity(), p.getCost()));							
 				}
-				if (p instanceof Refreshment) {
+				else if (p instanceof Refreshment) {
 					String refreshmentString = ((Refreshment) p).getName() + " (" + p.getQuantity() + " units @ $" + df.format(p.getCost()) + "/unit)";
 					subtotal = p.getCost()*p.getQuantity();
 					subtotalString = "$" + df.format(subtotal);
@@ -487,26 +497,40 @@ public class DataConverter {
 							p.getCode(), refreshmentString, subtotalString, taxesString, totalString));
 				}
 			}
+			// Divider between list of products and final calculations
 			invoiceString.append(String.format("====================================\n"));
+			
 			subtotal = invoices.get(i).getSubtotal();
 			subtotalString = "$" + df.format(subtotal);
-			String feesString = "$6.75";
+			String feesString = "$" + df.format(invoices.get(i).getFees());
+			// if there is no parking deficit, subtract parking tax
+			// from set taxes
+			if (!invoices.get(i).getParkingDeficit()) {
+				invoices.get(i).setTaxes(invoices.get(i).getParkingTaxes());
+			}
 			taxes = invoices.get(i).getTaxes();
 			taxesString = "$" + df.format(taxes);
 			discount = invoices.get(i).getDiscount();
-			discountString = "$" + discount;
-			total = invoices.get(i).getTotal();
+			discountString = "$-" + df.format(discount);
 			totalString = "$" + df.format(subtotal + taxes);
+			
 			invoiceString.append(String.format("%-75s %-15s%-10s%-15s\n", "SUB-TOTALS", subtotalString, taxesString, totalString));
+			
+			// Reformatting totalString to include fees and discounts where applicable
+			total = invoices.get(i).getTotal();
+			totalString = "$" + df.format(total);
+			
+			// If the customer is a student
 			if (invoices.get(i).getCustomer() instanceof Student) {
-				invoiceString.append(String.format("%-75s %-15s\n", "DISCOUNT: (STUDENT & NO TAX)", discountString));
-				invoiceString.append(String.format("%-75s %-15s\n", "ADDITIONAL FEE (STUDENT)", feesString));
+				invoiceString.append(String.format("%-100s %-15s\n", "DISCOUNT: (STUDENT & NO TAX)", discountString));
+				invoiceString.append(String.format("%-100s %-15s\n", "ADDITIONAL FEE (STUDENT)", feesString));
+			}
+			else {
+				invoiceString.append(String.format("%-100s %-15s\n", "ADDITIONAL FEE (SEASON PASS)", feesString));
 			}
 			
-			totalString = "$" + df.format(invoices.get(i).getTotal());
-			
-			invoiceString.append(String.format("%-100s %-15.2f\n\n\n", "TOTALS", total));
-			invoiceString.append("Thank you for your purchase!\n\n\n\n");
+			invoiceString.append(String.format("%-100s %-15s\n\n\n", "TOTALS", totalString));
+			invoiceString.append("Thank you for your purchase!\n-------------------------\n\n\n");
 		}
 		System.out.println(invoiceString);
 	}

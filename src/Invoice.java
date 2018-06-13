@@ -22,6 +22,8 @@ public class Invoice extends DataConverter {
 	private Person person;
 	private Person custPerson;
 	private int ticketQuantity;
+	private double parkingTaxes;
+	private boolean parkingDeficit;
 
 	//set all the information
 	public Invoice(String invoiceCode, String customerCode, String persCode, 
@@ -135,6 +137,12 @@ public class Invoice extends DataConverter {
 							if (customer instanceof General) {
 								setTaxes(0.06, ticket);
 							}
+							else {
+								// sets taxes to what the student would have had to pay
+								setTaxes(0.06, ticket);
+								// sets discount to what the taxes would have been
+								setDiscount(getTaxes());
+							}
 						}
 						else if (pr instanceof SeasonPass) {
 							SeasonPass pass = new SeasonPass((SeasonPass)pr);
@@ -147,6 +155,12 @@ public class Invoice extends DataConverter {
 							if (customer instanceof General) {
 								setTaxes(0.06, pass);
 							}
+							else {
+								// sets taxes to what the student would have had to pay
+								setTaxes(0.06, pass);
+								// sets discount to what the taxes would have been
+								setDiscount(getTaxes());
+							}
 						}
 						else if (pr instanceof Refreshment) {
 							Refreshment refreshment = new Refreshment((Refreshment)pr);
@@ -155,6 +169,16 @@ public class Invoice extends DataConverter {
 							setSubtotal(refreshment.getCost()*refreshment.getQuantity());
 							if (customer instanceof General) {
 								setTaxes(0.04, refreshment);
+							}
+							else {
+								// sets taxes to what the student would have had to pay
+								setTaxes(0.04, refreshment);
+								// sets discount to what the taxes would have been
+								setDiscount(getTaxes());
+							}
+							if (hasPass || hasTicket) {
+								setDiscount((refreshment.getCost()*refreshment.getQuantity()) * 0.95);
+								refreshment.setCost(refreshment.getCost()*0.95);
 							}
 						}
 					}
@@ -169,16 +193,22 @@ public class Invoice extends DataConverter {
 						parking.setQuantity(Integer.parseInt(productArray[1]));
 						parking.setLicense(productArray[2]);
 						
+						// Parking boolean is set to true
+						this.hasParking = true;
+						
 						invoiceProducts.add(parking);
 						if (customer instanceof General) {
 							setTaxes(0.04, parking);
 						}
+						else {
+							// sets taxes to what the student would have had to pay
+							setTaxes(0.04, parking);
+							// sets discount to what the taxes would have been
+							setDiscount(getTaxes());
+						}
 						
 						// Parking is present, so discount amount is activated
 						this.setParkingDiscount(parking.getCost());
-						
-						// Parking boolean is set to true
-						this.hasParking = true;
 						
 						
 					}
@@ -186,16 +216,10 @@ public class Invoice extends DataConverter {
 			}
 		}
 		
-		// Checks status of customer
-		if (this.customer instanceof Student) {
-			setDiscount(0.08);
-		}
-		else {
-			setDiscount(0);
-		}
-		
-		// Setting any necessary fees before ending method
+		// Setting any necessary fees
 		setFees();
+		// Setting total
+		setTotal();
 	}
 	
 	public boolean hasTicket() {
@@ -213,7 +237,10 @@ public class Invoice extends DataConverter {
 	public double getFees() {
 		return fees;
 	}
-
+	
+	/**
+	 * Method that sets fees for students and season passes
+	 */
 	public void setFees() {
 		if (this.customer instanceof Student) {
 			this.fees = 6.75;
@@ -229,8 +256,20 @@ public class Invoice extends DataConverter {
 	}
 
 	public void setTaxes(double taxRate, Product product) {
-		double taxes = product.getCost()*taxRate;
+		// If the product is a parking pass, the tax is added to a
+		// separate tax rate in case there is no deficit to be
+		// paid by the customer
+		if (product instanceof ParkingPass) {
+			this.setParkingTaxes(this.getParkingTaxes() + product.getCost()*product.getQuantity()*taxRate);
+		}
+		// The taxes are then added as normal
+		double taxes = product.getCost()*product.getQuantity()*taxRate;
 		this.taxes += taxes;
+	}
+
+	// Polymorphism used to set taxes for parking deficit handling
+	public void setTaxes(double parkingTaxes) {
+		this.taxes -= parkingTaxes;
 	}
 
 	public double getDiscount() {
@@ -238,20 +277,22 @@ public class Invoice extends DataConverter {
 	}
 
 	public void setDiscount(double discount) {
-		if ((hasParking && hasTicket) || (hasParking && hasPass)) {
-			this.parkingDiscount += discount;
-		}
-		else {
-			this.discount = discount;
-		}
+		this.discount += discount;
 	}
 
 	public double getTotal() {
 		return total;
 	}
 
-	public void setTotal(double total) {
-		this.total = total;
+	public void setTotal() {
+		if (customer instanceof Student) {
+			double total = this.subtotal * 0.92;
+			setDiscount((this.subtotal-total));
+			this.total += this.subtotal + this.fees - this.discount;
+		}
+		else {
+			this.total = subtotal + fees + taxes - discount;
+		}
 	}
 
 	public double getParkingDiscount() {
@@ -260,5 +301,21 @@ public class Invoice extends DataConverter {
 
 	public void setParkingDiscount(double parkingDiscount) {
 		this.parkingDiscount = (passQuantity+ticketQuantity)*parkingDiscount;
+	}
+
+	public void setParkingDeficit(boolean b) {
+		this.parkingDeficit = b;
+	}
+	
+	public boolean getParkingDeficit() {
+		return parkingDeficit;
+	}
+
+	public double getParkingTaxes() {
+		return parkingTaxes;
+	}
+
+	public void setParkingTaxes(double parkingTaxes) {
+		this.parkingTaxes += parkingTaxes;
 	}
 }

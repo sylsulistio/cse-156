@@ -72,8 +72,6 @@ public class SeasonPass implements Product{
 	}
 	public void setEndDate(String endDate) {
 		int currentYear = Calendar.getInstance().get(Calendar.YEAR);
-		int currentMonth = Calendar.getInstance().get(Calendar.MONTH);
-		int currentDate = Calendar.getInstance().get(Calendar.DATE);
 		String[] dateTime = endDate.split("-");
 		boolean isValid = true;
 		

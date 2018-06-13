@@ -81,6 +81,7 @@ public class MovieTicket implements Product{
 			double discountAmount = this.cost * 0.07;
 			this.discountAmount = discountAmount;
 			this.cost -= discountAmount;
+			this.movieDateTime = movieDateTime;
 		}
 		// If date is invalid, an indicator is stored
 		else if (!isValid) {
