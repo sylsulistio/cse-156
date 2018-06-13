@@ -454,7 +454,7 @@ public class DataConverter {
 					// Sets the parking amount to how much the customer would actually pay after discount and taxes
 					parkingAmount = subtotal + taxes - parkingAmount;
 					// If the parking discount is higher than what they actually used, everything is set to zero
-					if (parkingAmount < 0) {
+					if (parkingAmount <= 0) {
 						// Sets boolean in object to false for later use
 						invoices.get(i).setParkingDeficit(false);
 						parkingAmount = 0;
@@ -522,10 +522,13 @@ public class DataConverter {
 			
 			// If the customer is a student
 			if (invoices.get(i).getCustomer() instanceof Student) {
+				discount = invoices.get(i).getDiscount() + invoices.get(i).getTaxes();
+				discountString = "$-" + df.format(discount);
 				invoiceString.append(String.format("%-100s %-15s\n", "DISCOUNT: (STUDENT & NO TAX)", discountString));
 				invoiceString.append(String.format("%-100s %-15s\n", "ADDITIONAL FEE (STUDENT)", feesString));
 			}
 			else {
+				invoiceString.append(String.format("%-100s %-15s\n", "DISCOUNT", discountString));
 				invoiceString.append(String.format("%-100s %-15s\n", "ADDITIONAL FEE (SEASON PASS)", feesString));
 			}
 			
