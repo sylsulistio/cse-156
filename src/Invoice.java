@@ -131,7 +131,7 @@ public class Invoice extends DataConverter {
 							this.ticketQuantity += ticket.getQuantity();
 							this.hasTicket = true;
 							invoiceProducts.add(ticket);
-							setSubtotal(ticket.getCost()*ticket.getQuantity());
+							setSubtotal((ticket.getCost()-ticket.getDiscount())*ticket.getQuantity());
 							if (customer instanceof General) {
 								setTaxes(0.06, ticket);
 							}
@@ -149,7 +149,8 @@ public class Invoice extends DataConverter {
 							this.hasTicket = true;
 							this.hasPass = true;
 							invoiceProducts.add(pass);
-							setSubtotal(pass.getCost()*pass.getQuantity());
+							// Season pass fees are added in subtotal
+							setSubtotal((pass.getCost()+8)*pass.getQuantity());
 							if (customer instanceof General) {
 								setTaxes(0.06, pass);
 							}
@@ -244,10 +245,6 @@ public class Invoice extends DataConverter {
 	public void setFees() {
 		if (this.customer instanceof Student) {
 			this.fees = 6.75;
-		}
-		if (hasPass == true) {
-			double totalFees = passQuantity * 8;
-			this.fees += totalFees;
 		}
 	}
 

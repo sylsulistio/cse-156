@@ -475,7 +475,7 @@ public class DataConverter {
 							p.getCode(), parkingString, subtotalString, taxesString, totalString));
 				}
 				else if (p instanceof SeasonPass) {
-					subtotal = p.getCost()*p.getQuantity();
+					subtotal = (p.getCost()+8)*p.getQuantity();
 					subtotalString = "$" + df.format(subtotal);
 					taxes = subtotal*0.06;
 					taxesString = "$" + df.format(taxes);

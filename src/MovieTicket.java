@@ -18,20 +18,22 @@ public class MovieTicket implements Product{
 		this.setCode(code);
 		this.setType(type);
 		this.productName = productName;
-		this.movieDateTime = movieDateTime;
+		this.cost = cost;
+		this.setMovieDateTime(movieDateTime);
 		this.address = address;
 		this.setScreenNum(scrnNum);
-		this.cost = cost;
+		this.discountAmount = 0;
 	}
 	
 	public MovieTicket(MovieTicket product) {
 		this.setCode(product.getCode());
 		this.setType(product.getType());
 		this.productName = product.getName();
+		this.cost = product.getCost();
+		this.discountAmount = product.getDiscount();
 		this.movieDateTime = product.getMovieDateTime();
 		this.address = product.getAddress();
 		this.setScreenNum(product.getScreenNum());
-		this.cost = product.getCost();
 	}
 
 	public String getName() {
