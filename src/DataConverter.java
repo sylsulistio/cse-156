@@ -434,10 +434,15 @@ public class DataConverter {
 					taxes = subtotal*0.06;
 					taxesString = "$" + df.format(taxes);
 					totalString = "$" + df.format(subtotal + taxes);
+					
 					String movieString = "MovieTicket '" + ((MovieTicket) p).getName() + "' @ " + ((MovieTicket)p).getAddress().getStreet();
 					invoiceString.append(String.format("%-10s%-65s %-15s%-10s%-15s\n", p.getCode(), movieString, subtotalString, 
 																					   taxesString, totalString));
-					movieString = ((MovieTicket) p).getMovieDateTime() + " (" + p.getQuantity() + " units @ $" + df.format(p.getCost()) + "/unit)";
+					movieString = ((MovieTicket) p).getMovieDateTime() + " (" + p.getQuantity() + " units @ $" + df.format(p.getCost()) + "/unit)";String isTueThur = "(Tue/Thur 7% off)";
+					// If Tue/Thur discount is active, the string appears
+					if (((MovieTicket)p).isTueThur()) {
+						movieString += isTueThur;
+					}
 					invoiceString.append(String.format("%-10s%-65s\n", "", movieString));
 				}
 				else if (p instanceof ParkingPass) {
@@ -481,7 +486,11 @@ public class DataConverter {
 					taxesString = "$" + df.format(taxes);
 					totalString = "$" + df.format(subtotal + taxes);
 					invoiceString.append(String.format("%-10s%-65s %-15s%-10s%-15s\n", p.getCode(), "SeasonPass - " + ((SeasonPass)p).getName(), subtotalString, taxesString, totalString));
-					invoiceString.append(String.format("%-10s%-1s unit(s) @ $%-1.2f/unit + $8.00 fee/unit)\n", "", "(" + p.getQuantity(), p.getCost()));							
+					String prorateString = "";
+					if (((SeasonPass) p).isProrated()) {
+						prorateString = "(Prorated " + ((SeasonPass) p).getTimeLeft() + "/" + ((SeasonPass) p).getActiveTime() + " days)";
+					}
+					invoiceString.append(String.format("%-10s%-1s unit(s) @ $%-1.2f/unit + $8.00 fee/unit)%-1s\n", "", "(" + p.getQuantity(), p.getCost(), prorateString ));							
 				}
 				else if (p instanceof Refreshment) {
 					String refreshmentString = ((Refreshment) p).getName() + " (" + p.getQuantity() + " units @ $" + df.format(p.getCost()) + "/unit)";

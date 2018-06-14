@@ -143,14 +143,22 @@ public class Invoice extends DataConverter {
 							}
 						}
 						else if (pr instanceof SeasonPass) {
-							SeasonPass pass = new SeasonPass((SeasonPass)pr);
+							SeasonPass pass = new SeasonPass((SeasonPass)pr, invoiceDate);
 							pass.setQuantity(Integer.parseInt(productArray[1]));
 							this.passQuantity += pass.getQuantity();
 							this.hasTicket = true;
 							this.hasPass = true;
 							invoiceProducts.add(pass);
-							// Season pass fees are added in subtotal
-							setSubtotal((pass.getCost()+8)*pass.getQuantity());
+							// If the pass is prorated, the prorate is subtracted from the cost
+							// of each pass to add to the subtotal
+							// $8 is added as convenience fee
+							if (pass.isProrated()) {
+								pass.setCost(pass.getCost()-pass.getProrated());
+								setSubtotal((pass.getCost()+8)*pass.getQuantity());
+							}
+							else {
+								setSubtotal((pass.getCost()+8)*pass.getQuantity());
+							}
 							if (customer instanceof General) {
 								setTaxes(0.06, pass);
 							}
@@ -166,7 +174,6 @@ public class Invoice extends DataConverter {
 							refreshment.setQuantity(Integer.parseInt(productArray[1]));
 							invoiceProducts.add(refreshment);
 							if (hasPass || hasTicket) {
-								setDiscount((refreshment.getCost()*refreshment.getQuantity()) * 0.95);
 								refreshment.setCost(refreshment.getCost()*0.95);
 							}
 							setSubtotal(refreshment.getCost()*refreshment.getQuantity());
@@ -253,10 +260,16 @@ public class Invoice extends DataConverter {
 	}
 
 	public void setTaxes(double taxRate, Product product) {
+		// If the product is a season pass, $8 is added as part of the cost
+		if (product instanceof SeasonPass) {
+			double taxes = (product.getCost()+8)*product.getQuantity()*taxRate;
+			this.taxes += taxes;
+			return;
+		}
 		// If the product is a parking pass, the tax is added to a
 		// separate tax rate in case there is no deficit to be
 		// paid by the customer
-		if (product instanceof ParkingPass) {
+		else if (product instanceof ParkingPass) {
 			double parkingAfterDiscount = product.getCost()*product.getQuantity() - this.parkingDiscount;
 			if (parkingAfterDiscount < 0) {
 				parkingAfterDiscount = product.getCost()*product.getQuantity();

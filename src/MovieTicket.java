@@ -1,5 +1,5 @@
+import java.time.LocalDate;
 import java.util.Calendar;
-import java.util.Date;
 
 public class MovieTicket implements Product{
 
@@ -7,7 +7,7 @@ public class MovieTicket implements Product{
 	private String type;
 	private String productName;
 	private String movieDateTime;
-
+	private boolean isTueThur;
 	private Address address;
 	private String scrnNum;
 	private double cost;
@@ -15,6 +15,7 @@ public class MovieTicket implements Product{
 	private double discountAmount;
 	
 	public MovieTicket(String code, String type, String movieDateTime, String productName, Address address, String scrnNum, double cost) {
+		this.isTueThur = false;
 		this.setCode(code);
 		this.setType(type);
 		this.productName = productName;
@@ -34,6 +35,7 @@ public class MovieTicket implements Product{
 		this.movieDateTime = product.getMovieDateTime();
 		this.address = product.getAddress();
 		this.setScreenNum(product.getScreenNum());
+		this.isTueThur = product.isTueThur();
 	}
 
 	public String getName() {
@@ -48,12 +50,8 @@ public class MovieTicket implements Product{
 		int currentYear = Calendar.getInstance().get(Calendar.YEAR);
 		String[] dateTime = movieDateTime.split(" ");
 		String[] date = dateTime[0].split("-");
-		@SuppressWarnings("deprecation")
-		Date dateObj = new Date(Integer.parseInt(date[2]), Integer.parseInt(date[0]), Integer.parseInt(date[1]));
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(dateObj);
+		LocalDate dateObj = LocalDate.of(Integer.parseInt(date[0]), Integer.parseInt(date[1]), Integer.parseInt(date[2]));
 		boolean isValid = true;
-		boolean isTueThur = false;
 		
 		// If year is less than 1900, or ten years later than current year,
 		// it is invalid
@@ -73,8 +71,8 @@ public class MovieTicket implements Product{
 		}
 		
 		// Checks for Tue/Thur discount
-		if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.TUESDAY ||
-			calendar.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY) {
+		if (dateObj.getDayOfWeek().getValue()+1 == Calendar.TUESDAY ||
+			dateObj.getDayOfWeek().getValue()+1 == Calendar.THURSDAY) {
 			isTueThur = true;
 		}
 		
@@ -85,11 +83,19 @@ public class MovieTicket implements Product{
 			this.cost -= discountAmount;
 			this.movieDateTime = movieDateTime;
 		}
+		else if (isValid) {
+			this.movieDateTime = movieDateTime;
+		}
 		// If date is invalid, an indicator is stored
 		else if (!isValid) {
 			this.movieDateTime = "(Invalid date)";
 		}
 	}
+	
+	public boolean isTueThur() {
+		return isTueThur;
+	}
+
 	
 	public Address getAddress() {
 		return address;
