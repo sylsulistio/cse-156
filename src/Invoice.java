@@ -21,6 +21,7 @@ public class Invoice extends DatabaseReader {
 	private Person custPerson;
 	private double parkingTaxes;
 	private boolean parkingDeficit;
+	private String linkedTicket;
 
 	//set all the information
 	public Invoice(String invoiceCode, String customerCode, String persCode, 
@@ -183,35 +184,6 @@ public class Invoice extends DatabaseReader {
 								setDiscount(getTaxes());
 							}
 						}
-						else if (pr instanceof ParkingPass) {
-							if (productArray[0].equals(pr.getCode())) {
-								// Creating a new object to store a duplicate of the product to be placed in the array
-								ParkingPass parking = new ParkingPass((ParkingPass)pr);
-								parking.setQuantity(Integer.parseInt(productArray[1]));
-								parking.setLicense("");
-								
-								// Parking is present, so discount amount is activated
-								this.setParkingDiscount(parking.getCost());
-
-								if (customer instanceof General) {
-									setTaxes(0.04, parking);
-								}
-								else {
-									// sets taxes to what the student would have had to pay
-									setTaxes(0.04, parking);
-									// sets discount to what the taxes would have been
-									setDiscount(getTaxes());
-								}
-								double parkingAfterDiscount = parking.getCost()*parking.getQuantity() - this.parkingDiscount;
-								if (parkingAfterDiscount <= 0) {
-									setSubtotal(0);
-								}
-								else {
-									setSubtotal(parkingAfterDiscount);
-								}
-								invoiceProducts.add(parking);
-							}
-						}
 					}
 				}
 			}
@@ -222,7 +194,7 @@ public class Invoice extends DatabaseReader {
 						// Creating a new object to store a duplicate of the product to be placed in the array
 						ParkingPass parking = new ParkingPass((ParkingPass)pr);
 						parking.setQuantity(Integer.parseInt(productArray[1]));
-						parking.setLicense(productArray[2]);
+						parking.setLink(productArray[2]);
 						
 						// Parking is present, so discount amount is activated
 						this.setParkingDiscount(parking.getCost());

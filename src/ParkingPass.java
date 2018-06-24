@@ -5,7 +5,7 @@ public class ParkingPass implements Product{
 	private String type;
 	private double cost;
 	private int quantity;
-	private String license;
+	private String linkedTicket;
 	
 	public ParkingPass(String salesCode, String salesType, double salesCost) {
 		this.setCode(salesCode);
@@ -69,11 +69,11 @@ public class ParkingPass implements Product{
 		return this.quantity;
 	}
 
-	public String getLicense() {
-		return license;
+	public String getLink() {
+		return linkedTicket;
 	}
 
-	public void setLicense(String license) {
-		this.license = license;
+	public void setLink(String linkedTicket) {
+		this.linkedTicket = linkedTicket;
 	}
 }

@@ -293,7 +293,7 @@ public class DataConverter {
 //		
 //		print.close();
 //		xmlPrint.close();
-//		s.close();
+		s.close();
 	}
 	
 	/**
@@ -395,7 +395,6 @@ public class DataConverter {
 			String custAddress2 = invoices.get(i).getCustomer().getAddress().getLine2();
 			
 			double subtotal = invoices.get(i).getSubtotal();
-			double fees = invoices.get(i).getFees();
 			double taxes = invoices.get(i).getTaxes();
 			double discount = invoices.get(i).getDiscount();
 			double total = invoices.get(i).getTotal();
@@ -488,7 +487,7 @@ public class DataConverter {
 					invoiceString.append(String.format("%-10s%-65s %-15s%-10s%-15s\n", p.getCode(), "SeasonPass - " + ((SeasonPass)p).getName(), subtotalString, taxesString, totalString));
 					String prorateString = "";
 					if (((SeasonPass) p).isProrated()) {
-						prorateString = "(Prorated " + ((SeasonPass) p).getTimeLeft() + "/" + ((SeasonPass) p).getActiveTime() + " days)";
+						prorateString = "(Prorated " + ((SeasonPass) p).getTimeLeft() + "/" + ((SeasonPass) p).getActiveTime() + " days)5";
 					}
 					invoiceString.append(String.format("%-10s%-1s unit(s) @ $%-1.2f/unit + $8.00 fee/unit)%-1s\n", "", "(" + p.getQuantity(), p.getCost(), prorateString ));							
 				}

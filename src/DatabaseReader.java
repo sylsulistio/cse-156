@@ -8,7 +8,11 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DatabaseReader {
+	static final Logger log = LoggerFactory.getLogger(DatabaseReader.class);
 	protected static ArrayList<Customer> customers = new ArrayList<Customer>();
 	protected static ArrayList<Person> persons = new ArrayList<Person>();
 	protected static ArrayList<Product> products = new ArrayList<Product>();
@@ -28,37 +32,39 @@ public class DatabaseReader {
 		ResultSet  rs = ps.executeQuery();
 		
 		try {
-			while (rs.next()) {
-				String personCode = rs.getString("PersonID");
-				String personName = rs.getString("Name");
-				Address address = null;
-				String emails = null;
-				
-				//Getting Address values
-				query = "SELECT * FROM Address WHERE AddressKey = ?";
-				ps = conn.prepareStatement(query);
-				ps.setInt(1, rs.getInt("AddressKey"));
-				
-				ResultSet rs1 = ps.executeQuery();
-				if (rs1.next()) {
-					String[] array = {rs1.getString("Street"), rs1.getString("City"), rs1.getString("State"), rs1.getString("Zip"), rs1.getString("Country")};
-					address = new Address(array);
+			if (log.isDebugEnabled()) {
+				while (rs.next()) {
+					String personCode = rs.getString("PersonID");
+					String personName = rs.getString("Name");
+					Address address = null;
+					String emails = null;
+					
+					//Getting Address values
+					query = "SELECT * FROM Address WHERE AddressKey = ?";
+					ps = conn.prepareStatement(query);
+					ps.setInt(1, rs.getInt("AddressKey"));
+					
+					ResultSet rs1 = ps.executeQuery();
+					if (rs1.next()) {
+						String[] array = {rs1.getString("Street"), rs1.getString("City"), rs1.getString("State"), rs1.getString("Zip"), rs1.getString("Country")};
+						address = new Address(array);
+					}
+					
+					//Getting email string
+					query = "SELECT * FROM Emails WHERE EmailKey = ?";
+					ps = conn.prepareStatement(query);
+					ps.setInt(1, rs.getInt("EmailKey"));
+					
+					rs1 = ps.executeQuery();
+					if (rs1.next()) {
+						emails = rs1.getString("Email");
+					}
+					
+					Person p = new Person(personCode, personName, address, emails);
+	
+					persons.add(p);
+					rs1.close();
 				}
-				
-				//Getting email string
-				query = "SELECT * FROM Emails WHERE EmailKey = ?";
-				ps = conn.prepareStatement(query);
-				ps.setInt(1, rs.getInt("EmailKey"));
-				
-				rs1 = ps.executeQuery();
-				if (rs1.next()) {
-					emails = rs1.getString("Email");
-				}
-				
-				Person p = new Person(personCode, personName, address, emails);
-
-				persons.add(p);
-				rs1.close();
 			}
 		}
 		catch(SQLException e) {
@@ -234,39 +240,69 @@ public class DatabaseReader {
 	 * the Invoice.dat file and prints the quantified information
 	 * for an invoice to be stored in the Invoice.txt file
 	 * 
-	 * @throws FileNotFoundException
 	 * @return ArrayList<Invoice>
+	 * @throws SQLException 
 	 */
-	 public static void readInvoices() throws FileNotFoundException {
-		Scanner s = new Scanner(new File("data/Invoices.dat"));
-		int numInvoices = Integer.parseInt((s.nextLine()).trim());
+	public static void readInvoices() throws SQLException {
+		Connection conn = ConnectionFactory.getOne();
+		PreparedStatement ps = null;
+		String query = "SELECT * FROM Invoices";
+		ps = conn.prepareStatement(query);
+		ResultSet  rs = ps.executeQuery();
 		
-		String invoiceCode;
-		String customerCode;
-		String salesCode;
-		String invoiceDate;
-		String[] productList;
 		Invoice invoice = null;
 		ArrayList<Invoice> invoices = new ArrayList<Invoice>();
 		
-		for (int i = 0; i < numInvoices; i++) {
-			String line = (s.nextLine().trim());
-			String[] invoiceInfo = line.split(";");
-			
-			invoiceCode = invoiceInfo[0];
-			customerCode = invoiceInfo[1];
-			salesCode = invoiceInfo[2];
-			invoiceDate = invoiceInfo[3];
-			productList = invoiceInfo[4].split(",");
-			invoice = new Invoice(invoiceCode, customerCode, salesCode,
-				invoiceDate, productList);
-			
-			invoices.add(invoice);
+		try {
+			while (rs.next()) {
+				String invoiceCode = rs.getString("InvoiceID");
+				if (invoiceCode == null) {
+					log.debug("Invoice code not found");
+				}
+				String customerCode = rs.getString("CustomerID");
+				if (invoiceCode == null) {
+					log.debug("Customer code not found");
+				}
+				String salesCode = rs.getString("SalespersonID");
+				if (invoiceCode == null) {
+					log.debug("Person code not found");
+				}
+				String invoiceDate = rs.getString("Date");
+				if (invoiceCode == null) {
+					log.debug("Invoice date not found");
+				}
+				
+				// Getting linked ticket, if any
+				String linkedTicket = rs.getString("LinkedTicket");
+				
+				// Getting products for the invoice, starting with movie tickets
+				String[] productList = null;
+				
+				query = "SELECT ProductID, Quantity FROM Purchases p WHERE EXISTS (SELECT ProductID FROM MovieTicket m WHERE p.ProductID = m.ProductID) AND InvoiceID = ?";
+				ps.setString(1, invoiceCode);
+				
+				ResultSet productRs = ps.executeQuery();
+				
+				
+				invoice = new Invoice(invoiceCode, customerCode, salesCode,
+						invoiceDate, linkedTicket, productList);
+					
+				invoices.add(invoice);
+			}
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+		}
+		catch(NumberFormatException e) {
+			e.printStackTrace();
+		}
+		finally {
+			ps.close();
+			rs.close();
+			conn.close();
 		}
 		writeInvoiceSummary(invoices);
 		writeInvoiceIndividual(invoices);
-
-		s.close();
 	}
 	
 	public static void writeInvoiceSummary(ArrayList<Invoice> invoices) {
@@ -406,7 +442,7 @@ public class DatabaseReader {
 					taxes = subtotal*0.04;
 					taxesString = "$" + df.format(taxes);
 					totalString = "$" + df.format(subtotal + taxes);
-					String parkingString = "ParkingPass (" + ((ParkingPass)p).getLicense() + ") (" + p.getQuantity() + " unit(s) @ $"
+					String parkingString = "ParkingPass (" + ((ParkingPass)p).getLink() + ") (" + p.getQuantity() + " unit(s) @ $"
 											+ df.format(initialCost) + "/unit)" + freeParking; //freeParking string only shows if there is indeed free parking
 					invoiceString.append(String.format("%-10s%-65s %-15s%-10s%-15s\n", 
 							p.getCode(), parkingString, subtotalString, taxesString, totalString));
@@ -479,11 +515,17 @@ public class DatabaseReader {
 		System.out.println(invoiceString);
 	}
 	public static void main(String[] args) throws SQLException, FileNotFoundException {
-
-		DatabaseReader.readPersons();
-		DatabaseReader.readCustomers();
-		DatabaseReader.readProducts();
+		log.info("Program started");
 		
+		DatabaseReader.readPersons();
+		log.info("Persons read into objects");
+		DatabaseReader.readCustomers();
+		log.info("Customers read into objects");
+		DatabaseReader.readProducts();
+		log.info("Products read into objects");
+		
+		log.info("Reading invoices");
 		readInvoices();
+		log.info("Program stopping");
 	}
 }
