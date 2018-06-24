@@ -2,7 +2,7 @@
 import java.util.ArrayList;
 import java.util.Calendar;
 
-public class Invoice extends DataConverter {
+public class Invoice extends DatabaseReader {
 	//could we make a dedicated function to codes?
 	//See if there are any similarities we need to look for in these codes
 	private String invoiceCode;
@@ -16,11 +16,9 @@ public class Invoice extends DataConverter {
 	private boolean hasTicket;
 	private boolean hasPass;
 	private double parkingDiscount;
-	private int passQuantity;
 	private Customer customer;
 	private Person person;
 	private Person custPerson;
-	private int ticketQuantity;
 	private double parkingTaxes;
 	private boolean parkingDeficit;
 
@@ -128,7 +126,6 @@ public class Invoice extends DataConverter {
 						if (pr instanceof MovieTicket) {
 							MovieTicket ticket = new MovieTicket((MovieTicket)pr);
 							ticket.setQuantity(Integer.parseInt(productArray[1]));
-							this.ticketQuantity += ticket.getQuantity();
 							this.hasTicket = true;
 							invoiceProducts.add(ticket);
 							setSubtotal((ticket.getCost()-ticket.getDiscount())*ticket.getQuantity());
@@ -145,7 +142,6 @@ public class Invoice extends DataConverter {
 						else if (pr instanceof SeasonPass) {
 							SeasonPass pass = new SeasonPass((SeasonPass)pr, invoiceDate);
 							pass.setQuantity(Integer.parseInt(productArray[1]));
-							this.passQuantity += pass.getQuantity();
 							this.hasTicket = true;
 							this.hasPass = true;
 							invoiceProducts.add(pass);
@@ -185,6 +181,35 @@ public class Invoice extends DataConverter {
 								setTaxes(0.04, refreshment);
 								// sets discount to what the taxes would have been
 								setDiscount(getTaxes());
+							}
+						}
+						else if (pr instanceof ParkingPass) {
+							if (productArray[0].equals(pr.getCode())) {
+								// Creating a new object to store a duplicate of the product to be placed in the array
+								ParkingPass parking = new ParkingPass((ParkingPass)pr);
+								parking.setQuantity(Integer.parseInt(productArray[1]));
+								parking.setLicense("");
+								
+								// Parking is present, so discount amount is activated
+								this.setParkingDiscount(parking.getCost());
+
+								if (customer instanceof General) {
+									setTaxes(0.04, parking);
+								}
+								else {
+									// sets taxes to what the student would have had to pay
+									setTaxes(0.04, parking);
+									// sets discount to what the taxes would have been
+									setDiscount(getTaxes());
+								}
+								double parkingAfterDiscount = parking.getCost()*parking.getQuantity() - this.parkingDiscount;
+								if (parkingAfterDiscount <= 0) {
+									setSubtotal(0);
+								}
+								else {
+									setSubtotal(parkingAfterDiscount);
+								}
+								invoiceProducts.add(parking);
 							}
 						}
 					}
@@ -316,7 +341,7 @@ public class Invoice extends DataConverter {
 	}
 
 	public void setParkingDiscount(double parkingDiscount) {
-		this.parkingDiscount = (passQuantity+ticketQuantity)*parkingDiscount;
+		this.parkingDiscount = parkingDiscount;
 	}
 
 	public void setParkingDeficit(boolean b) {

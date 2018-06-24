@@ -22,6 +22,11 @@ public abstract class Customer {
 			this.custName = "(Name unknown)";
 		}
 		else {
+			String[] nameArray = custName.split(",");
+			if (nameArray.length >= 2) {
+				custName = nameArray[1].trim() + " " + nameArray[0].trim();
+			}
+			
 			for (int i = 0; i < custName.length(); i++) {
 				// If statements allow for hyphens, apostrophes, and spaces in names
 				if ((custName.toLowerCase()).charAt(i) < 97 &&
