@@ -14,7 +14,6 @@ public class Invoice extends DatabaseReader {
 	private double total;
 	private ArrayList<Product> invoiceProducts = new ArrayList<Product>();
 	private boolean hasTicket;
-	private boolean hasPass;
 	private double parkingDiscount;
 	private Customer customer;
 	private Person person;
@@ -25,15 +24,14 @@ public class Invoice extends DatabaseReader {
 
 	//set all the information
 	public Invoice(String invoiceCode, String customerCode, String persCode, 
-		String invoiceDate, String[] productList) {
+		String invoiceDate, String linkedTicket, ArrayList<Product> products) {
 		parkingDiscount = 0;
 		this.invoiceCode = invoiceCode;
 		this.setCustomer(customerCode);
 		this.setPerson(persCode);
 		this.setInvoiceDate(invoiceDate);
-		hasTicket = false;
-		hasPass = false;
-		this.setProducts(productList);
+		this.setLinkedTicket(linkedTicket);
+		this.setProducts(products);
 	}
 	
 	//getters and setters
@@ -115,111 +113,9 @@ public class Invoice extends DatabaseReader {
 	public ArrayList<Product> getProducts() {
 		return invoiceProducts;
 	}
-	public void setProducts(String[] productList) {
-		for (String p: productList) {
-			String[] productArray = p.split(":");
-			// if only two in productArray, it is not a ParkingPass
-			if (productArray.length == 2) {
-				for(Product pr: products) {
-					// Looked through CarExample 3 to model this bit after, tried my best to adapt it
-					if (productArray[0].equals(pr.getCode())) {
-						
-						if (pr instanceof MovieTicket) {
-							MovieTicket ticket = new MovieTicket((MovieTicket)pr);
-							ticket.setQuantity(Integer.parseInt(productArray[1]));
-							this.hasTicket = true;
-							invoiceProducts.add(ticket);
-							setSubtotal((ticket.getCost()-ticket.getDiscount())*ticket.getQuantity());
-							if (customer instanceof General) {
-								setTaxes(0.06, ticket);
-							}
-							else {
-								// sets taxes to what the student would have had to pay
-								setTaxes(0.06, ticket);
-								// sets discount to what the taxes would have been
-								setDiscount(getTaxes());
-							}
-						}
-						else if (pr instanceof SeasonPass) {
-							SeasonPass pass = new SeasonPass((SeasonPass)pr, invoiceDate);
-							pass.setQuantity(Integer.parseInt(productArray[1]));
-							this.hasTicket = true;
-							this.hasPass = true;
-							invoiceProducts.add(pass);
-							// If the pass is prorated, the prorate is subtracted from the cost
-							// of each pass to add to the subtotal
-							// $8 is added as convenience fee
-							if (pass.isProrated()) {
-								pass.setCost(pass.getCost()-pass.getProrated());
-								setSubtotal((pass.getCost()+8)*pass.getQuantity());
-							}
-							else {
-								setSubtotal((pass.getCost()+8)*pass.getQuantity());
-							}
-							if (customer instanceof General) {
-								setTaxes(0.06, pass);
-							}
-							else {
-								// sets taxes to what the student would have had to pay
-								setTaxes(0.06, pass);
-								// sets discount to what the taxes would have been
-								setDiscount(getTaxes());
-							}
-						}
-						else if (pr instanceof Refreshment) {
-							Refreshment refreshment = new Refreshment((Refreshment)pr);
-							refreshment.setQuantity(Integer.parseInt(productArray[1]));
-							invoiceProducts.add(refreshment);
-							if (hasPass || hasTicket) {
-								refreshment.setCost(refreshment.getCost()*0.95);
-							}
-							setSubtotal(refreshment.getCost()*refreshment.getQuantity());
-							if (customer instanceof General) {
-								setTaxes(0.04, refreshment);
-							}
-							else {
-								// sets taxes to what the student would have had to pay
-								setTaxes(0.04, refreshment);
-								// sets discount to what the taxes would have been
-								setDiscount(getTaxes());
-							}
-						}
-					}
-				}
-			}
-			else if (productArray.length == 3) {
-				for(Product pr: products) {
-					if (productArray[0].equals(pr.getCode())) {
-						
-						// Creating a new object to store a duplicate of the product to be placed in the array
-						ParkingPass parking = new ParkingPass((ParkingPass)pr);
-						parking.setQuantity(Integer.parseInt(productArray[1]));
-						parking.setLink(productArray[2]);
-						
-						// Parking is present, so discount amount is activated
-						this.setParkingDiscount(parking.getCost());
-
-						if (customer instanceof General) {
-							setTaxes(0.04, parking);
-						}
-						else {
-							// sets taxes to what the student would have had to pay
-							setTaxes(0.04, parking);
-							// sets discount to what the taxes would have been
-							setDiscount(getTaxes());
-						}
-						double parkingAfterDiscount = parking.getCost()*parking.getQuantity() - this.parkingDiscount;
-						if (parkingAfterDiscount <= 0) {
-							setSubtotal(0);
-						}
-						else {
-							setSubtotal(parkingAfterDiscount);
-						}
-						invoiceProducts.add(parking);
-					}
-				}
-			}
-		}
+	
+	public void setProducts(ArrayList<Product> products) {
+		this.invoiceProducts = products;
 		
 		// Setting any necessary fees
 		setFees();
@@ -311,9 +207,11 @@ public class Invoice extends DatabaseReader {
 	public double getParkingDiscount() {
 		return parkingDiscount;
 	}
-
-	public void setParkingDiscount(double parkingDiscount) {
-		this.parkingDiscount = parkingDiscount;
+	
+	// Sets parking discount to the cost and quantity of the linked ticket
+	
+	public void setParkingDiscount(Product linkedTicket) {
+		this.parkingDiscount = linkedTicket.getQuantity()*linkedTicket.getCost();
 	}
 
 	public void setParkingDeficit(boolean b) {
@@ -330,5 +228,13 @@ public class Invoice extends DatabaseReader {
 
 	public void setParkingTaxes(double parkingTaxes) {
 		this.parkingTaxes += parkingTaxes;
+	}
+
+	public String getLinkedTicket() {
+		return linkedTicket;
+	}
+
+	public void setLinkedTicket(String linkedTicket) {
+		this.linkedTicket = linkedTicket;
 	}
 }

@@ -1,12 +1,9 @@
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -260,15 +257,15 @@ public class DatabaseReader {
 					log.debug("Invoice code not found");
 				}
 				String customerCode = rs.getString("CustomerID");
-				if (invoiceCode == null) {
+				if (customerCode == null) {
 					log.debug("Customer code not found");
 				}
 				String salesCode = rs.getString("SalespersonID");
-				if (invoiceCode == null) {
+				if (salesCode == null) {
 					log.debug("Person code not found");
 				}
 				String invoiceDate = rs.getString("Date");
-				if (invoiceCode == null) {
+				if (invoiceDate == null) {
 					log.debug("Invoice date not found");
 				}
 				
@@ -276,16 +273,99 @@ public class DatabaseReader {
 				String linkedTicket = rs.getString("LinkedTicket");
 				
 				// Getting products for the invoice, starting with movie tickets
-				String[] productList = null;
+				ArrayList<Product> invoiceProducts = new ArrayList<Product>();
 				
 				query = "SELECT ProductID, Quantity FROM Purchases p WHERE EXISTS (SELECT ProductID FROM MovieTicket m WHERE p.ProductID = m.ProductID) AND InvoiceID = ?";
+				ps = conn.prepareStatement(query);
 				ps.setString(1, invoiceCode);
 				
 				ResultSet productRs = ps.executeQuery();
+				// Loop iterates through all products and takes only the ones that match the product ID
+				while (productRs.next()) {
+					String productID = productRs.getString("ProductID");
+					log.debug("Product code: " + productID);
+					for (Product p: products) {
+						if (productID.equalsIgnoreCase(p.getCode())) {
+							MovieTicket m = new MovieTicket((MovieTicket)p);
+							m.setQuantity(productRs.getInt("Quantity"));
+							String logString = m.getName() + ", " + m.getCode();
+							log.debug("MovieTicket added: " + logString);
+
+							invoiceProducts.add(m);
+						}
+					}
+				}
+				
+				// Getting refreshments
+				query = "SELECT ProductID, Quantity FROM Purchases p WHERE EXISTS (SELECT ProductID FROM Refreshments r WHERE p.ProductID = r.ProductID) AND InvoiceID = ?";
+				ps = conn.prepareStatement(query);
+				ps.setString(1, invoiceCode);
+				
+				productRs = ps.executeQuery();
+				// Loop iterates through all products and takes only the ones that match the product ID
+				while (productRs.next()) {
+					String productID = productRs.getString("ProductID");
+					log.debug("Product code: " + productID);
+					for (Product p: products) {
+						if (productID.equalsIgnoreCase(p.getCode())) {
+							Refreshment r = new Refreshment((Refreshment)p);
+							r.setQuantity(productRs.getInt("Quantity"));
+							String logString = r.getName() + ", " + r.getCode();
+							log.debug("Refreshment added: " + logString);
+
+
+							invoiceProducts.add(r);
+						}
+					}
+				}
+				
+				// Getting parking passes
+				query = "SELECT ProductID, Quantity FROM Purchases p WHERE EXISTS (SELECT ProductID FROM ParkingPass park WHERE p.ProductID = park.ProductID) AND InvoiceID = ?";
+				ps = conn.prepareStatement(query);
+				ps.setString(1, invoiceCode);
+				
+				productRs = ps.executeQuery();
+				// Loop iterates through all products and takes only the ones that match the product ID
+				while (productRs.next()) {
+					String productID = productRs.getString("ProductID");
+					log.debug("Product code: " + productID);
+					for (Product p: products) {
+						if (productID.equalsIgnoreCase(p.getCode())) {
+							ParkingPass park = new ParkingPass((ParkingPass)p);
+							park.setQuantity(productRs.getInt("Quantity"));
+							String logString = park.getCode();
+							log.debug("ParkingPass added: " + logString);
+
+							invoiceProducts.add(park);
+						}
+					}
+				}
+				
+				// Getting season passes
+				query = "SELECT ProductID, Quantity FROM Purchases p WHERE EXISTS (SELECT ProductID FROM SeasonPass s WHERE p.ProductID = s.ProductID) AND InvoiceID = ?";
+				ps = conn.prepareStatement(query);
+				ps.setString(1, invoiceCode);
+				
+				productRs = ps.executeQuery();
+				// Loop iterates through all products and takes only the ones that match the product ID
+				while (productRs.next()) {
+					String productID = productRs.getString("ProductID");
+					log.debug("Product code: " + productID);
+					for (Product p: products) {
+						if (productID.equalsIgnoreCase(p.getCode())) {
+							SeasonPass s = new SeasonPass((SeasonPass)p, invoiceDate);
+							s.setQuantity(productRs.getInt("Quantity"));
+							String logString = s.getCode();
+							log.debug("SeasonPass added: " + logString);
+
+							invoiceProducts.add(s);
+						}
+					}
+				}
 				
 				
 				invoice = new Invoice(invoiceCode, customerCode, salesCode,
-						invoiceDate, linkedTicket, productList);
+						invoiceDate, linkedTicket, invoiceProducts);
 					
 				invoices.add(invoice);
 			}
@@ -421,7 +501,7 @@ public class DatabaseReader {
 					double parkingAmount = invoices.get(i).getParkingDiscount();
 					// If there is a parking discount at all
 					if (parkingAmount > 0) {
-						freeNum = (int)(parkingAmount/p.getCost());
+						freeNum = (int)(parkingAmount/initialCost);
 						freeParking = "(" + freeNum + " free)";
 					}
 					// Sets the parking amount to how much the customer would actually pay after discount and taxes
@@ -442,7 +522,7 @@ public class DatabaseReader {
 					taxes = subtotal*0.04;
 					taxesString = "$" + df.format(taxes);
 					totalString = "$" + df.format(subtotal + taxes);
-					String parkingString = "ParkingPass (" + ((ParkingPass)p).getLink() + ") (" + p.getQuantity() + " unit(s) @ $"
+					String parkingString = "ParkingPass (" + invoices.get(i).getLinkedTicket() + ") (" + p.getQuantity() + " unit(s) @ $"
 											+ df.format(initialCost) + "/unit)" + freeParking; //freeParking string only shows if there is indeed free parking
 					invoiceString.append(String.format("%-10s%-65s %-15s%-10s%-15s\n", 
 							p.getCode(), parkingString, subtotalString, taxesString, totalString));
@@ -514,7 +594,7 @@ public class DatabaseReader {
 		}
 		System.out.println(invoiceString);
 	}
-	public static void main(String[] args) throws SQLException, FileNotFoundException {
+	public static void main(String[] args) throws SQLException {
 		log.info("Program started");
 		
 		DatabaseReader.readPersons();

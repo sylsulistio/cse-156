@@ -5,7 +5,6 @@ public class ParkingPass implements Product{
 	private String type;
 	private double cost;
 	private int quantity;
-	private String linkedTicket;
 	
 	public ParkingPass(String salesCode, String salesType, double salesCost) {
 		this.setCode(salesCode);
@@ -67,13 +66,5 @@ public class ParkingPass implements Product{
 	@Override
 	public int getQuantity() {
 		return this.quantity;
-	}
-
-	public String getLink() {
-		return linkedTicket;
-	}
-
-	public void setLink(String linkedTicket) {
-		this.linkedTicket = linkedTicket;
 	}
 }
