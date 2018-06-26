@@ -197,7 +197,6 @@ public class SeasonPass implements Product{
 				if (timeProrated > 0) {
 					this.prorated = (this.cost/timeUntilExpiration)*timeProrated;
 					this.isProrated = true;
-					System.out.println(prorated);
 				}
 			}
 		}

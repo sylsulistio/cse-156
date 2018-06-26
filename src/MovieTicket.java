@@ -80,7 +80,6 @@ public class MovieTicket implements Product{
 		if (isValid && isTueThur) {
 			double discountAmount = this.cost * 0.07;
 			this.discountAmount = discountAmount;
-			this.cost -= discountAmount;
 			this.movieDateTime = movieDateTime;
 		}
 		else if (isValid) {

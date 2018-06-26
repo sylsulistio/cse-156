@@ -116,11 +116,6 @@ public class Invoice extends DatabaseReader {
 	
 	public void setProducts(ArrayList<Product> products) {
 		this.invoiceProducts = products;
-		
-		// Setting any necessary fees
-		setFees();
-		// Setting total
-		setTotal();
 	}
 	
 	public boolean hasTicket() {

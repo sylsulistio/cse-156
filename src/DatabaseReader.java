@@ -29,39 +29,39 @@ public class DatabaseReader {
 		ResultSet  rs = ps.executeQuery();
 		
 		try {
-			if (log.isDebugEnabled()) {
-				while (rs.next()) {
-					String personCode = rs.getString("PersonID");
-					String personName = rs.getString("Name");
-					Address address = null;
-					String emails = null;
-					
-					//Getting Address values
-					query = "SELECT * FROM Address WHERE AddressKey = ?";
-					ps = conn.prepareStatement(query);
-					ps.setInt(1, rs.getInt("AddressKey"));
-					
-					ResultSet rs1 = ps.executeQuery();
-					if (rs1.next()) {
-						String[] array = {rs1.getString("Street"), rs1.getString("City"), rs1.getString("State"), rs1.getString("Zip"), rs1.getString("Country")};
-						address = new Address(array);
-					}
-					
-					//Getting email string
-					query = "SELECT * FROM Emails WHERE EmailKey = ?";
-					ps = conn.prepareStatement(query);
-					ps.setInt(1, rs.getInt("EmailKey"));
-					
-					rs1 = ps.executeQuery();
-					if (rs1.next()) {
-						emails = rs1.getString("Email");
-					}
-					
-					Person p = new Person(personCode, personName, address, emails);
-	
-					persons.add(p);
-					rs1.close();
+			while (rs.next()) {
+				String personCode = rs.getString("PersonID");
+				String personName = rs.getString("Name");
+				Address address = null;
+				String emails = null;
+				
+				//Getting Address values
+				query = "SELECT * FROM Address WHERE AddressKey = ?";
+				ps = conn.prepareStatement(query);
+				ps.setInt(1, rs.getInt("AddressKey"));
+				
+				ps.execute();
+				
+				ResultSet rs1 = ps.executeQuery();
+				if (rs1.next()) {
+					String[] array = {rs1.getString("Street"), rs1.getString("City"), rs1.getString("State"), rs1.getString("Zip"), rs1.getString("Country")};
+					address = new Address(array);
 				}
+				
+				//Getting email string
+				query = "SELECT * FROM Emails WHERE EmailKey = ?";
+				ps = conn.prepareStatement(query);
+				ps.setInt(1, rs.getInt("EmailKey"));
+				
+				rs1 = ps.executeQuery();
+				if (rs1.next()) {
+					emails = rs1.getString("Email");
+				}
+				
+				Person p = new Person(personCode, personName, address, emails);
+
+				persons.add(p);
+				rs1.close();
 			}
 		}
 		catch(SQLException e) {
@@ -269,6 +269,10 @@ public class DatabaseReader {
 					log.debug("Invoice date not found");
 				}
 				
+				double totalSubtotal = 0;
+				double totalTaxes = 0;
+				double totalDiscount = 0;
+				
 				// Getting linked ticket, if any
 				String linkedTicket = rs.getString("LinkedTicket");
 				
@@ -283,14 +287,28 @@ public class DatabaseReader {
 				// Loop iterates through all products and takes only the ones that match the product ID
 				while (productRs.next()) {
 					String productID = productRs.getString("ProductID");
-					log.debug("Product code: " + productID);
 					for (Product p: products) {
 						if (productID.equalsIgnoreCase(p.getCode())) {
 							MovieTicket m = new MovieTicket((MovieTicket)p);
 							m.setQuantity(productRs.getInt("Quantity"));
 							String logString = m.getName() + ", " + m.getCode();
 							log.debug("MovieTicket added: " + logString);
-
+							
+							double subtotal = m.getCost()*m.getQuantity();
+							log.debug("Cost: " + subtotal);
+							totalSubtotal += subtotal;
+							log.debug("Current subtotal: " + totalSubtotal);
+							
+							double taxes = 0.06*subtotal;
+							log.debug("Taxes: " + taxes);
+							totalTaxes += taxes;
+							log.debug("Current subtotal: " + totalSubtotal);
+							
+							double discount = m.getDiscount()*m.getQuantity();
+							log.debug("Discount: " + discount);
+							totalDiscount += discount;
+							log.debug("Current discount: " + totalDiscount);
+							
 							invoiceProducts.add(m);
 						}
 					}
@@ -305,14 +323,23 @@ public class DatabaseReader {
 				// Loop iterates through all products and takes only the ones that match the product ID
 				while (productRs.next()) {
 					String productID = productRs.getString("ProductID");
-					log.debug("Product code: " + productID);
 					for (Product p: products) {
 						if (productID.equalsIgnoreCase(p.getCode())) {
 							Refreshment r = new Refreshment((Refreshment)p);
 							r.setQuantity(productRs.getInt("Quantity"));
 							String logString = r.getName() + ", " + r.getCode();
 							log.debug("Refreshment added: " + logString);
+							
 
+							double subtotal = r.getCost()*r.getQuantity();
+							log.debug("Cost: " + subtotal);
+							totalSubtotal += subtotal;
+							log.debug("Current subtotal: " + totalSubtotal);
+							
+							double taxes = 0.04*subtotal;
+							log.debug("Taxes: " + taxes);
+							totalTaxes += taxes;
+							log.debug("Current taxes: " + totalTaxes);
 
 							invoiceProducts.add(r);
 						}
@@ -328,13 +355,22 @@ public class DatabaseReader {
 				// Loop iterates through all products and takes only the ones that match the product ID
 				while (productRs.next()) {
 					String productID = productRs.getString("ProductID");
-					log.debug("Product code: " + productID);
 					for (Product p: products) {
 						if (productID.equalsIgnoreCase(p.getCode())) {
 							ParkingPass park = new ParkingPass((ParkingPass)p);
 							park.setQuantity(productRs.getInt("Quantity"));
 							String logString = park.getCode();
 							log.debug("ParkingPass added: " + logString);
+
+							double subtotal = park.getQuantity()*park.getCost();
+							log.debug("Cost: " + subtotal);
+							totalSubtotal += subtotal;
+							log.debug("Current subtotal: " + totalSubtotal);
+							
+							double taxes = 0.04*subtotal;
+							log.debug("Taxes: " + taxes);
+							totalTaxes += taxes;
+							log.debug("Current taxes: " + totalTaxes);
 
 							invoiceProducts.add(park);
 						}
@@ -350,13 +386,23 @@ public class DatabaseReader {
 				// Loop iterates through all products and takes only the ones that match the product ID
 				while (productRs.next()) {
 					String productID = productRs.getString("ProductID");
-					log.debug("Product code: " + productID);
 					for (Product p: products) {
 						if (productID.equalsIgnoreCase(p.getCode())) {
 							SeasonPass s = new SeasonPass((SeasonPass)p, invoiceDate);
 							s.setQuantity(productRs.getInt("Quantity"));
 							String logString = s.getCode();
 							log.debug("SeasonPass added: " + logString);
+							
+							// Subtotal includes the convenience fee and prorated price
+							double subtotal = (s.getCost()-s.getProrated()+8)*s.getQuantity();
+							log.debug("Cost: " + subtotal);
+							totalSubtotal += subtotal;
+							log.debug("Current subtotal: " + totalSubtotal);
+							
+							double taxes = 0.06*subtotal;
+							log.debug("Taxes: " + taxes);
+							totalTaxes += taxes;
+							log.debug("Current taxes: " + totalTaxes);
 
 							invoiceProducts.add(s);
 						}
@@ -366,6 +412,15 @@ public class DatabaseReader {
 				
 				invoice = new Invoice(invoiceCode, customerCode, salesCode,
 						invoiceDate, linkedTicket, invoiceProducts);
+				
+				// Setting subtotal as accumulated by above
+				invoice.setSubtotal(totalSubtotal);
+				// Setting discounts
+				invoice.setDiscount(totalDiscount);
+				// Setting any necessary fees
+				invoice.setFees();
+				// Setting total
+				invoice.setTotal();
 					
 				invoices.add(invoice);
 			}
@@ -377,8 +432,8 @@ public class DatabaseReader {
 			e.printStackTrace();
 		}
 		finally {
-			ps.close();
 			rs.close();
+			ps.close();
 			conn.close();
 		}
 		writeInvoiceSummary(invoices);
