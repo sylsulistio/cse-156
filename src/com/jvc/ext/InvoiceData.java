@@ -5,6 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /*
  * This is a collection of utility methods that define a general API for
  * interacting with the database supporting this application.
@@ -14,6 +17,7 @@ import java.sql.SQLException;
  */
 
 public class InvoiceData {
+	static final Logger log = LoggerFactory.getLogger(InvoiceData.class);
 
 	/**
 	 * 1. Method that removes every person record from the database
@@ -22,22 +26,56 @@ public class InvoiceData {
 	public static void removeAllPersons() throws SQLException{
 		Connection conn = ConnectionFactory.getOne();
 		PreparedStatement ps = null;
-		String query = "TRUNCATE table Emails";
+		String query = "DELETE FROM Purchases";
 		ps = conn.prepareStatement(query);
-		//Function to delete all emails from the Emails table, as every email is connected to a person
+		//Function to delete all purchases from the Purchases table, as every purchase is connected to an invoice
 		try {
 			ps.execute();
 			
-			//Function to delete each address associated with a person
-			query = "DELETE FROM Address JOIN Persons WHERE Persons.AddressKey = Address.AddressKey";
+			query = "SELECT * FROM Purchases";
+			ps = conn.prepareStatement(query);
+			ResultSet rs = ps.executeQuery();
+			
+			if (rs.next()) {
+				log.debug("rs Purchases exists");
+			}
+			else {
+				log.debug("rs Purchases was successfully purged");
+			}
+		
+			//Function to delete all invoices from the Invoices table, as every invoice is connected to a person
+			query = "DELETE FROM Invoices";
 			ps = conn.prepareStatement(query);
 			ps.execute();
 			
+			query = "SELECT * FROM Invoices";
+			ps = conn.prepareStatement(query);
+			rs = ps.executeQuery();
+			
+			if (rs.next()) {
+				log.debug("rs Invoices exists");
+			}
+			else {
+				log.debug("rs Invoices was successfully purged");
+			}
+			
 			//Function to delete all Persons from the Persons table
-			query = "TRUNCATE table Persons";
+			query = "DELETE FROM Persons";
 			ps = conn.prepareStatement(query);
 			ps.execute();
-
+			
+			query = "SELECT * FROM Persons";
+			ps = conn.prepareStatement(query);
+			rs = ps.executeQuery();
+			
+			if (rs.next()) {
+				log.debug("rs Persons exists");
+			}
+			else {
+				log.debug("rs Persons was successfully purged");
+			}
+			
+			rs.close();
 		}
 		catch(SQLException e) {
 			e.printStackTrace();
@@ -72,9 +110,7 @@ public class InvoiceData {
 			//Inserting Address First
 			String query = "INSERT INTO Address(Street, City, State, Zip, Country) VALUES "
 					+ "(?, ?, ?, ?, ?)";
-			
-			ps = conn.prepareStatement(query);
-			
+			ps = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
 			ps.setString(1, street);
 			ps.setString(2, city);
 			ps.setString(3, state);
@@ -82,44 +118,57 @@ public class InvoiceData {
 			ps.setString(5, country);
 			ps.execute();
 			
-			// Inserting Person
-			// Selecting the last inserted address key
-			query = "SELECT AddressKey FROM Address WHERE Address.AddressKey = LAST_INSERT_ID";
-			ps = conn.prepareStatement(query);
-			int addressID = 999;
-			rs = ps.executeQuery();
+			rs = ps.getGeneratedKeys();
+			int addressID = 0;
 			
-			if(rs.next()){
-				addressID = rs.getInt("AddressKey");
+			if(rs.next()) {
+				log.debug("rs exists");
+				addressID = rs.getInt(1);
+				log.debug("Got address key: " + addressID);
 			}
 			
-			// inserting blank email field
-			query = "INSERT INTO Emails VALUES (LAST_INSERT_ID, null)";
+			query = "SELECT * FROM Address WHERE AddressKey = ?";
 			ps = conn.prepareStatement(query);
+			ps.setInt(1, addressID);
+			rs = ps.executeQuery();
+			if (rs.next()) {
+				log.debug("Street name: " + rs.getString("Street"));
+			}
+			
+			ps = null;
+			rs = null;
+			// inserting blank email field
+			query = "INSERT INTO Emails(Email) VALUES (null)";
+			ps = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
 			ps.execute();
 			
-			query = "SELECT EmailKey FROM Emails WHERE Emails.EmailKey = LAST_INSERT_ID";
-			ps = conn.prepareStatement(query);
-			int emailID = 999;
-			rs = ps.executeQuery();
-
-			if(rs.next()){
-				emailID = rs.getInt("EmailKey");
+			rs = ps.getGeneratedKeys();
+			int emailID = 0;
+			
+			if(rs.next()) {
+				emailID = rs.getInt(1);
 			}
 			
 			// Adding this key into Persons
-			query = "INSERT INTO Persons (PersonCode, Name, AddressKey, EmailKey)"
+			query = "INSERT INTO Persons (PersonID, Name, AddressKey, EmailKey)"
 						+ " VALUES (?, ?, ?, ?)";
 			ps = conn.prepareStatement(query);
-			ps.execute();
-			
+
 			String personName = lastName + ", " + firstName;
-			
 			ps.setString(1, personCode);
 			ps.setString(2, personName);
 			ps.setInt(3, addressID);
 			ps.setInt(4, emailID);
 			ps.execute();
+			
+			query = "SELECT * FROM Persons WHERE PersonID = ?";
+			ps = conn.prepareStatement(query);
+			ps.setString(1, personCode);
+			rs = ps.executeQuery();
+			
+			if (rs.next()) {
+				log.debug("Person name: " + rs.getString("Name") + "\nPerson Code: " + rs.getString("PersonID"));
+			}
 			
 			rs.close();
 			ps.close();
@@ -158,7 +207,7 @@ public class InvoiceData {
 				emailKey = rs.getInt("EmailKey");
 				prevEmail = rs.getString("Email");
 			}
-			// Appending email to original string, if not null
+			// Appending email to original string
 			query = "UPDATE Emails SET Email = ? WHERE EmailKey = ?";
 			ps.setString(1, (prevEmail + "," + email));
 			ps.setInt(2, emailKey);
@@ -185,11 +234,11 @@ public class InvoiceData {
 		
 		Connection conn = ConnectionFactory.getOne();
 		PreparedStatement ps = null;
+		//Function to delete each address associated with a customer
 		String query = "DELETE FROM Address JOIN Customers WHERE Customer.AddressKey = Address.AddressKey";
 		ps = conn.prepareStatement(query);
 		
 		try {
-			//Function to delete each address associated with a customer
 			ps.execute();
 			
 			//Function to delete all Customers from the Customers table
@@ -263,8 +312,9 @@ public class InvoiceData {
 	
 	/**
 	 * 5. Removes all product records from the database
+	 * @throws SQLException 
 	 */
-	public static void removeAllProducts() {
+	public static void removeAllProducts() throws SQLException {
 		//before we can truncate data, we need to delete all addresses associated with a product
 		//The only product which has address data is the movie ticket field:
 		//Connect:
@@ -274,31 +324,41 @@ public class InvoiceData {
 	//Not sure whether we need to delete the Invoice table. 
 		
 	//Function to delete each address associated with a movie ticket
-		ps = null;
-		String query = "DELETE FROM Address JOIN MovieTicket WHERE MovieTicket.AddressKey = Address.AddressKey";
-		ps = conn.prepareStatement(query);
+		try {
+			String query = "DELETE FROM Address JOIN MovieTicket WHERE MovieTicket.AddressKey = Address.AddressKey";
 		
-	//Function to delete all product tables relating to products
-		ps = null;
-		query = "TRUNCATE table MovieTicket";
-		ps = conn.prepareStatement(query);
-		
-		ps = null;
-		query = "TRUNCATE table ParkingPass";
-		ps = conn.prepareStatement(query);
-		
-		ps = null;
-		query = "TRUNCATE table SeasonPass";
-		ps = conn.prepareStatement(query);
-		
-		ps = null;
-		query = "TRUNCATE table Refreshments";
-		ps = conn.prepareStatement(query);
-		
-		ps = null;
-		query = "TRUNCATE table Products";
-		ps = conn.prepareStatement(query);
-		
+			ps = conn.prepareStatement(query);
+			ps.execute();
+			
+		//Function to delete all product tables relating to products
+			ps = null;
+			query = "TRUNCATE table MovieTicket";
+			ps = conn.prepareStatement(query);
+			ps.execute();
+			
+			ps = null;
+			query = "TRUNCATE table ParkingPass";
+			ps = conn.prepareStatement(query);
+			ps.execute();
+			
+			ps = null;
+			query = "TRUNCATE table SeasonPass";
+			ps = conn.prepareStatement(query);
+			ps.execute();
+			
+			ps = null;
+			query = "TRUNCATE table Refreshments";
+			ps = conn.prepareStatement(query);
+			ps.execute();
+			
+			ps = null;
+			query = "TRUNCATE table Products";
+			ps = conn.prepareStatement(query);
+			ps.execute();
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
 	//done?
 		ps.close();
 		conn.close();
@@ -306,9 +366,10 @@ public class InvoiceData {
 
 	/**
 	 * 6. Adds an movieTicket record to the database with the provided data.
+	 * @throws SQLException 
 	 */
 	public static void addMovieTicket(String productCode, String dateTime, String movieName, String street, 
-			String city,String state, String zip, String country, String screenNo, double pricePerUnit) {
+			String city,String state, String zip, String country, String screenNo, double pricePerUnit) throws SQLException {
 	//Connect to Database
 		Connection conn = ConnectionFactory.getOne();
 		PreparedStatement ps = null;
@@ -343,12 +404,12 @@ public class InvoiceData {
 		ps.setString(3, movieName);
 		ps.setString(4, screenNo);
 		ps.setDouble(5, pricePerUnit);
-		ps.setString(6, addressID);
+		ps.setInt(6, addressID);
 		ps.execute();
 		
 	//Finally, insert the product code into Products:
 		query = "INSERT INTO Products(ProductID) VALUES (?)";
-		ps.setString(1, addressID);
+		ps.setInt(1, addressID);
 		
 	//done
 		rs.close();

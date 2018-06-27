@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jvc.ext.InvoiceData;
+
 public class DatabaseReader {
 	static final Logger log = LoggerFactory.getLogger(DatabaseReader.class);
 	protected static ArrayList<Customer> customers = new ArrayList<Customer>();
@@ -436,8 +438,8 @@ public class DatabaseReader {
 			ps.close();
 			conn.close();
 		}
-		writeInvoiceSummary(invoices);
-		writeInvoiceIndividual(invoices);
+//		writeInvoiceSummary(invoices);
+//		writeInvoiceIndividual(invoices);
 	}
 	
 	public static void writeInvoiceSummary(ArrayList<Invoice> invoices) {
@@ -661,6 +663,7 @@ public class DatabaseReader {
 		
 		log.info("Reading invoices");
 		readInvoices();
+		InvoiceData.addPerson("PERS", "firstName", "lastName", "street", "city", "ST", "56489", "country");
 		log.info("Program stopping");
 	}
 }
