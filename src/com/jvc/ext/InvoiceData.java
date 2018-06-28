@@ -580,7 +580,67 @@ public class InvoiceData {
 	 * to an invoice corresponding to the provided <code>invoiceCode</code> with
 	 * the given begin/end dates
 	 */
-	public static void addSeasonPassToInvoice(String invoiceCode, String productCode, int quantity) {}
+	public static void addSeasonPassToInvoice(String invoiceCode, String productCode, int quantity) throws SQLException {
+
+		//Connect to Database	
+			Connection conn = ConnectionFactory.getOne();
+			PreparedStatement ps = null;
+			ResultSet rs = null;
+			
+			try {
+			//Insert into Purchases
+				String query = "SELECT * FROM Purchases WHERE InvoiceID = ? AND ProductID = ?";
+				ps = conn.prepareStatement(query);
+				ps.setString(1, invoiceCode);
+				ps.setString(2, productCode);
+				rs = ps.executeQuery();
+				
+				if (rs.next()) {
+					log.debug("Product/invoice combo already exists, initial quantity: " + rs.getInt("Quantity") +"; adding to quantity of existing entry");
+					query = "UPDATE Purchases SET Quantity = ? WHERE InvoiceID = ? AND ProductID = ?";
+					ps = conn.prepareStatement(query);
+					ps.setInt(1, (rs.getInt("Quantity") + quantity));
+					ps.setString(2, invoiceCode);
+					ps.setString(3, productCode);
+					ps.execute();
+					
+					query = "SELECT * FROM Purchases WHERE InvoiceID = ? AND ProductID = ?";
+					ps = conn.prepareStatement(query);
+					ps.setString(1, invoiceCode);
+					ps.setString(2, productCode);
+					ResultSet rs1 = ps.executeQuery();
+					
+					if (rs1.next())
+						log.debug("Current quantity: " + rs1.getInt("Quantity"));
+				}
+				else {
+					query = "INSERT INTO Purchases(InvoiceID, Quantity, ProductID) VALUES (?, ?, ?)";
+					ps = conn.prepareStatement(query);
+					ps.setString(1, invoiceCode);
+					ps.setInt(2, quantity);	
+					ps.setString(3, productCode);					
+					
+					ps.execute();
+					
+					query = "SELECT * FROM Purchases WHERE InvoiceID = ? AND ProductID = ?";
+					ps = conn.prepareStatement(query);
+					ps.setString(1, invoiceCode);
+					ps.setString(2, productCode);
+					rs = ps.executeQuery();
+				
+					if (rs.next()) {
+						log.debug("Purchase entered: " + rs.getString("ProductID") + "\nQuantity: " + rs.getInt("Quantity"));
+					}
+				}
+			}
+			catch (SQLException e) {
+				e.printStackTrace();
+			}
+			finally {
+				ps.close();
+				conn.close();
+			}
+	}
 
      /**
      * 14. Adds a particular ParkingPass (corresponding to <code>productCode</code> to an 
