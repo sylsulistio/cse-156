@@ -225,7 +225,7 @@ public class InvoiceData {
 	 * @throws SQLException 
 	 */
 
-	public static void removeAllCustomers() throws SQLException {
+public static void removeAllCustomers() throws SQLException {
 		
 		//Call the remove all invoices function, as you cannot have invoices without customers
 		removeAllInvoices(); 
@@ -233,16 +233,41 @@ public class InvoiceData {
 		Connection conn = ConnectionFactory.getOne();
 		PreparedStatement ps = null;
 		//Function to delete each address associated with a customer
-		String query = "DELETE FROM Address JOIN Customers WHERE Customer.AddressKey = Address.AddressKey";
+		String query = "DELETE Address FROM Address JOIN Customers ON Address.AddressKey = Customers.AddressKey WHERE Address.AddressKey = Customers.AddressKey";
 		ps = conn.prepareStatement(query);
 		
 		try {
 			ps.execute();
+		//function to determine whether all relevant files were successfully destroyed in the Address datatable			
+			query = "SELECT * FROM Address a JOIN Customers c ON c.AddressKey = a.AddressKey WHERE c.AddressKey = a.AddressKey";
+			ps = conn.prepareStatement(query);
+			ResultSet rs = ps.executeQuery();
 			
+			if (rs.next()) {
+				log.debug("rs Address exists");
+			}
+			else {
+				log.debug("rs Address was successfully reset");
+			}
+		
 			//Function to delete all Customers from the Customers table
-			query = "TRUNCATE table Customers";
+			query = "DELETE FROM Customers";
 			ps = conn.prepareStatement(query);
 			ps.execute();
+			//function to determine whether all relevant files were successfully destroyed in the customer dataTable				
+			query = "SELECT * FROM Customers";
+			ps = conn.prepareStatement(query);
+			rs = ps.executeQuery();
+			
+			if (rs.next()) {
+				log.debug("rs Customers exists");
+			}
+			else {
+				log.debug("rs Customers was successfully purged");
+			}
+		
+			ps.execute();
+			rs.close();
 		}
 		catch(SQLException e) {
 			e.printStackTrace();
@@ -252,6 +277,20 @@ public class InvoiceData {
 			conn.close();
 		}
 	}
+	
+	/**
+	 * 5. Method that adds a customer with an existing primary contact
+	 * @param customerCode
+	 * @param customerType
+	 * @param primaryContactPersonCode
+	 * @param name
+	 * @param street
+	 * @param city
+	 * @param state
+	 * @param zip
+	 * @param country
+	 * @throws SQLException
+	 */
 
 	public static void addCustomer(String customerCode, String customerType, String primaryContactPersonCode,
 		String name, String street, String city, String state, String zip, String country) throws SQLException {
@@ -259,43 +298,69 @@ public class InvoiceData {
 		//Connect to Database
 		Connection conn = ConnectionFactory.getOne();
 		PreparedStatement ps = null;
-		String query = "INSERT INTO Address(Street, City, State, Zip, Country) VALUES "
-			+ "(?, ?, ?, ?, ?)";
-		ps = conn.prepareStatement(query);
+		String query = "SELECT CustomerID FROM Customers WHERE CustomerID = ?";
 		
 		try {
-			//Inserting Address First
-			ps.setString(1, street);
-			ps.setString(2, city);
-			ps.setString(3, state);
-			ps.setString(4, zip);
-			ps.setString(5, country);
-			ps.execute();
-
-			//Inserting Person Contact
-			
-			//Insert Customer
-			//next, to find the address ID. We can do this by finding the last input address ID from the address we created
-			
-			query = "Select AddressKey FROM Address WHERE Address.AddressKey = LAST_INSERT_ID";
-			int addressID = 999;
-			ps = conn.prepareStatement(query);
-			ResultSet rs = ps.executeQuery();
-			
-			if(rs.next()){
-				addressID = rs.getInt("AddressKey");
-			}
-			//Now for the main insertion:
-			query = "INSERT INTO Customers(CustomerID, Type, PrimaryContact, Name, AddressKey) VALUES "
-					+ "?, ?, ?, ?, ?";
 			ps = conn.prepareStatement(query);
 			ps.setString(1, customerCode);
-			ps.setString(2, customerType);
-			ps.setString(3, primaryContactPersonCode);
-			ps.setString(4, name);
-			ps.setInt(5, addressID);
-			ps.execute();
+			ResultSet rs = ps.executeQuery();
 			
+			// Checking for pre-existing customers
+			if (rs.next()) {
+				log.debug("Customer with that ID already exists!");
+			}
+			else {
+				//Inserting Address First
+				query = "INSERT INTO Address(Street, City, State, Zip, Country) VALUES "
+				+ "(?, ?, ?, ?, ?)";
+				ps = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
+				ps.setString(1, street);
+				ps.setString(2, city);
+				ps.setString(3, state);
+				ps.setString(4, zip);
+				ps.setString(5, country);
+				ps.execute();
+				
+				rs = ps.getGeneratedKeys();
+				int addressID = 0;
+				if (rs.next()) {
+					addressID = rs.getInt(1);
+					log.debug("New addressID: " + addressID);
+				}
+	
+				// Checking for validity of primary contact
+				query = "SELECT PersonID FROM Persons WHERE PersonID = ?";
+				ps = conn.prepareStatement(query);
+				ps.setString(1, primaryContactPersonCode);
+				rs = ps.executeQuery();
+				
+				if (rs.next()) {
+				//Inserting Person Contact
+					query = "INSERT INTO Customers(CustomerID, Type, PrimaryContact, Name, AddressKey) VALUES "
+							+ "(?, ?, ?, ?, ?)";
+					ps = conn.prepareStatement(query);
+					ps.setString(1, customerCode);
+					if (customerType.equalsIgnoreCase("S") || customerType.equalsIgnoreCase("Student")) {
+						ps.setInt(2, 1);
+					}
+					else {
+						ps.setInt(2, 0);
+					}
+					ps.setString(3, primaryContactPersonCode);
+					ps.setString(4, name);
+					ps.setInt(5, addressID);
+					ps.execute();
+					
+					query = "SELECT * FROM Customers WHERE CustomerID = ?";
+					ps = conn.prepareStatement(query);
+					ps.setString(1, customerCode);
+					rs = ps.executeQuery();
+					
+					if (rs.next()) {
+						log.debug("Customer successfully entered!\nName: " + rs.getString("Name"));
+					}
+				}
+			}
 			rs.close();
 		}
 		catch(SQLException e) {
@@ -495,14 +560,16 @@ public class InvoiceData {
 
 	/**
 	 * 10. Removes all invoice records from the database
+	 * @throws SQLException 
 	 */
-	public static void removeAllInvoices() {
+	public static void removeAllInvoices() throws SQLException {
 		Connection conn = ConnectionFactory.getOne();
 		PreparedStatement ps = null;
 		//Function to delete all emails from the Emails table, as every email is connected to a person
 		String query = "DELETE FROM Invoices";
 		ps = conn.prepareStatement(query);
-		
+		ps.execute();
+		log.debug("All invoices purged");
 		ps.close();
 		conn.close();
 	}

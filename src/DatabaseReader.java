@@ -439,7 +439,7 @@ public class DatabaseReader {
 			conn.close();
 		}
 //		writeInvoiceSummary(invoices);
-		writeInvoiceIndividual(invoices);
+//		writeInvoiceIndividual(invoices);
 	}
 	
 	public static void writeInvoiceSummary(ArrayList<Invoice> invoices) {
@@ -663,8 +663,7 @@ public class DatabaseReader {
 		
 		log.info("Reading invoices");
 		readInvoices();
-		InvoiceData.addSeasonPassToInvoice("INV001", "QWTA", 2);
-		readInvoices();
+		InvoiceData.removeAllCustomers();
 		log.info("Program stopping");
 	}
 }
