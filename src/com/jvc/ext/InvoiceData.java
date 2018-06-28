@@ -383,41 +383,99 @@ public static void removeAllCustomers() throws SQLException {
 		//Connect:
 		Connection conn = ConnectionFactory.getOne();
 		PreparedStatement ps = null;
+		//Function to delete each address associated with a movie ticket
+		String query = "DELETE Address FROM Address JOIN MovieTicket ON MovieTicket.AddressKey = Address.AddressKey WHERE MovieTicket.AddressKey = Address.AddressKey";		
+		ps = conn.prepareStatement(query);
 		
-	//Not sure whether we need to delete the Invoice table. 
-		
-	//Function to delete each address associated with a movie ticket
-		try {
-			String query = "DELETE FROM Address JOIN MovieTicket WHERE MovieTicket.AddressKey = Address.AddressKey";
-		
-			ps = conn.prepareStatement(query);
+		try {			
 			ps.execute();
+			
+			query = "SELECT * FROM Address JOIN MovieTicket ON MovieTicket.AddressKey = Address.AddressKey WHERE MovieTicket.AddressKey = Address.AddressKey";
+			ps = conn.prepareStatement(query);
+			ResultSet rs = ps.executeQuery();
+
+			if (rs.next()) {
+				log.debug("rs MovieTicket Addresses exists");
+			}
+			else {
+				log.debug("rs MovieTicket Addresses were successfully reset");
+			}
 			
 		//Function to delete all product tables relating to products
 			ps = null;
-			query = "TRUNCATE table MovieTicket";
+			query = "DELETE MovieTicket FROM MovieTicket";
 			ps = conn.prepareStatement(query);
 			ps.execute();
+			// Checking for existence of MovieTicket
+			query = "SELECT * FROM MovieTicket";
+			ps = conn.prepareStatement(query);
+			rs = ps.executeQuery();
+			if (rs.next()) {
+				log.debug("rs MovieTicket exists");
+			}
+			else {
+				log.debug("rs MovieTicket was successfully purged");
+			}
 			
 			ps = null;
-			query = "TRUNCATE table ParkingPass";
+			query = "DELETE ParkingPass FROM ParkingPass";
 			ps = conn.prepareStatement(query);
 			ps.execute();
+			// Checking for existence of ParkingPass
+			query = "SELECT * FROM ParkingPass";
+			ps = conn.prepareStatement(query);
+			rs = ps.executeQuery();
+			if (rs.next()) {
+				log.debug("rs ParkingPass exists");
+			}
+			else {
+				log.debug("rs ParkingPass were successfully reset");
+			}
 			
 			ps = null;
-			query = "TRUNCATE table SeasonPass";
+			query = "DELETE SeasonPass FROM SeasonPass";
 			ps = conn.prepareStatement(query);
 			ps.execute();
+			// Checking for existence of SeasonPass
+			query = "SELECT * FROM SeasonPass";
+			ps = conn.prepareStatement(query);
+			rs = ps.executeQuery();
+			if (rs.next()) {
+				log.debug("rs SeasonPass exists");
+			}
+			else {
+				log.debug("rs SeasonPass were successfully reset");
+			}
 			
 			ps = null;
-			query = "TRUNCATE table Refreshments";
+			query = "DELETE Refreshments FROM Refreshments";
 			ps = conn.prepareStatement(query);
 			ps.execute();
+			// Checking for existence of Refreshments
+			query = "SELECT * FROM Refreshments";
+			ps = conn.prepareStatement(query);
+			rs = ps.executeQuery();
+			if (rs.next()) {
+				log.debug("rs Refreshments exists");
+			}
+			else {
+				log.debug("rs Refreshments were successfully reset");
+			}
 			
 			ps = null;
-			query = "TRUNCATE table Products";
+			query = "DELETE Products FROM Products";
 			ps = conn.prepareStatement(query);
 			ps.execute();
+			// Checking for existence of Products
+			query = "SELECT * FROM Products";
+			ps = conn.prepareStatement(query);
+			rs = ps.executeQuery();
+			if (rs.next()) {
+				log.debug("rs Products exists");
+			}
+			else {
+				log.debug("rs Products were successfully reset");
+			}
 		}
 		catch (SQLException e) {
 			e.printStackTrace();

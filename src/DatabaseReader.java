@@ -663,7 +663,7 @@ public class DatabaseReader {
 		
 		log.info("Reading invoices");
 		readInvoices();
-		InvoiceData.removeAllCustomers();
+		InvoiceData.removeAllProducts();
 		log.info("Program stopping");
 	}
 }
