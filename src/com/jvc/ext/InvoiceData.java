@@ -617,29 +617,38 @@ public static void removeAllCustomers() throws SQLException {
 
 	/**
 	 * 8. Adds a ParkingPass record to the database with the provided data.
+	 * @throws SQLException 
 	 */
-	public static void addParkingPass(String productCode, double parkingFee) {
+	public static void addParkingPass(String productCode, double parkingFee) throws SQLException {
 		
-	//Connect to Database
-		Connection conn = ConnectionFactory.getOne();
-		PreparedStatement ps = null;
-		ResultSet  rs = ps.executeQuery();
-	
-	//Main Insertion:	
-		String query = "INSERT INTO ParkingPass(ProductID, Cost) VALUES "
-			+ "?, ?";
+		//Connect to Database
+			Connection conn = ConnectionFactory.getOne();
+			PreparedStatement ps = null;
+			ResultSet rs = null;
+			// Checking if it already exists
+			String query = "SELECT ProductID FROM Products WHERE ProductID = ?";
+			ps = conn.prepareStatement(query);
+			ps.setString(1, productCode);
+			rs = ps.executeQuery();
+			if (rs.next()) {
+				log.debug("Product with this ProductCode already exists!");
+			}
+			else {
+				//insert the product code into Products:
+				query = "INSERT INTO Products(ProductID) VALUES (?)";
+				ps = conn.prepareStatement(query);
+				ps.setString(1, productCode);
+				ps.execute();
+				log.info("ParkingPass " + productCode + " inserted into Products");
 				
-		ps.setString(1, productCode);
-		ps.setString(2, name);
-		ps.setString(3, seasonStartDate);
-		ps.setString(4, seasonEndDate);
-		ps.setDouble(5, cost);
-		ps.execute();
-		
-	//Finally, insert the product code into Products:
-			query = "INSERT INTO Products(ProductID) VALUES (?)";
-			ps.setString(1, addressID);
-			
+				//Main Insertion:	
+				query = "INSERT INTO ParkingPass(ProductID, Cost) VALUES (?, ?)";
+				ps = conn.prepareStatement(query);
+				ps.setString(1, productCode);
+				ps.setDouble(2, parkingFee);
+				ps.execute();
+				log.info("ParkingPass " + productCode + " inserted into ParkingPass");
+			}
 		//done
 			rs.close();
 			ps.close();
@@ -648,17 +657,37 @@ public static void removeAllCustomers() throws SQLException {
 
 	/**
 	 * 9. Adds a refreshment record to the database with the provided data.
+	 * @throws SQLException 
 	 */
-	public static void addRefreshment(String productCode, String name, double cost) {
+	public static void addRefreshment(String productCode, String name, double cost) throws SQLException {
 	
-	//Connect to Database
 		Connection conn = ConnectionFactory.getOne();
 		PreparedStatement ps = null;
-		ResultSet  rs = ps.executeQuery();
-			
-	//Main Insertion:	
-		String query = "INSERT INTO Refreshments(ProductID, Name, Cost) VALUES "
-			+ "?, ?, ?";
+		ResultSet rs = null;
+		// Checking if it already exists
+		String query = "SELECT ProductID FROM Products WHERE ProductID = ?";
+		ps = conn.prepareStatement(query);
+		ps.setString(1, productCode);
+		rs = ps.executeQuery();
+		if (rs.next()) {
+			log.debug("Product with this ProductCode already exists!");
+		}
+		else {
+			//insert the product code into Products:
+			query = "INSERT INTO Products(ProductID) VALUES (?)";
+			ps = conn.prepareStatement(query);
+			ps.setString(1, productCode);
+			ps.execute();
+			log.info("Refreshment " + productCode + " inserted into Products");	
+		//Main Insertion:	
+			query = "INSERT INTO Refreshments(ProductID, Name, Cost) VALUES "
+				+ "?, ?, ?";
+			ps = conn.prepareStatement(query);
+			ps.setString(1, productCode);
+			ps.setString(2, name);
+			ps.setDouble(3, cost);
+			ps.execute();
+		}
 	}
 
 	/**
@@ -741,9 +770,68 @@ public static void removeAllCustomers() throws SQLException {
 	 * 12. Adds a particular movieticket (corresponding to <code>productCode</code>
 	 * to an invoice corresponding to the provided <code>invoiceCode</code> with
 	 * the given number of units
+	 * @throws SQLException 
 	 */
 
-	public static void addMovieTicketToInvoice(String invoiceCode, String productCode, int quantity) {}
+	public static void addMovieTicketToInvoice(String invoiceCode, String productCode, int quantity) throws SQLException {//Connect to Database	
+		Connection conn = ConnectionFactory.getOne();
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		
+		try {
+		//Insert into Purchases
+			String query = "SELECT * FROM Purchases WHERE InvoiceID = ? AND ProductID = ?";
+			ps = conn.prepareStatement(query);
+			ps.setString(1, invoiceCode);
+			ps.setString(2, productCode);
+			rs = ps.executeQuery();
+			
+			if (rs.next()) {
+				log.debug("Product/invoice combo already exists, initial quantity: " + rs.getInt("Quantity") +"; adding to quantity of existing entry");
+				query = "UPDATE Purchases SET Quantity = ? WHERE InvoiceID = ? AND ProductID = ?";
+				ps = conn.prepareStatement(query);
+				ps.setInt(1, (rs.getInt("Quantity") + quantity));
+				ps.setString(2, invoiceCode);
+				ps.setString(3, productCode);
+				ps.execute();
+				
+				query = "SELECT * FROM Purchases WHERE InvoiceID = ? AND ProductID = ?";
+				ps = conn.prepareStatement(query);
+				ps.setString(1, invoiceCode);
+				ps.setString(2, productCode);
+				ResultSet rs1 = ps.executeQuery();
+				
+				if (rs1.next())
+					log.debug("Current quantity: " + rs1.getInt("Quantity"));
+			}
+			else {
+				query = "INSERT INTO Purchases(InvoiceID, Quantity, ProductID) VALUES (?, ?, ?)";
+				ps = conn.prepareStatement(query);
+				ps.setString(1, invoiceCode);
+				ps.setInt(2, quantity);	
+				ps.setString(3, productCode);					
+				
+				ps.execute();
+				
+				query = "SELECT * FROM Purchases WHERE InvoiceID = ? AND ProductID = ?";
+				ps = conn.prepareStatement(query);
+				ps.setString(1, invoiceCode);
+				ps.setString(2, productCode);
+				rs = ps.executeQuery();
+			
+				if (rs.next()) {
+					log.debug("Purchase entered: " + rs.getString("ProductID") + "\nQuantity: " + rs.getInt("Quantity"));
+				}
+			}
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		finally {
+			ps.close();
+			conn.close();
+		}
+	}
 
 	/*
 	 * 13. Adds a particular seasonpass (corresponding to <code>productCode</code>
@@ -873,13 +961,62 @@ public static void removeAllCustomers() throws SQLException {
 			ps.close();
 			conn.close();
 		}
-		}
+	}
 	
     /**
      * 15. Adds a particular refreshment (corresponding to <code>productCode</code> to an 
      * invoice corresponding to the provided <code>invoiceCode</code> with the given
      * number of quantity. 
+     * @throws SQLException 
      */
-    public static void addRefreshmentToInvoice(String invoiceCode, String productCode, int quantity) {}
+    public static void addRefreshmentToInvoice(String invoiceCode, String productCode, int quantity) throws SQLException {
+    	Connection conn = ConnectionFactory.getOne();
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		
+		try {
+			//Insert into Purchases
+			String query = "SELECT * FROM Purchases WHERE InvoiceID = ? AND ProductID = ?";
+			ps = conn.prepareStatement(query);
+			ps.setString(1, invoiceCode);
+			ps.setString(2, productCode);
+			rs = ps.executeQuery();
+			
+			if (rs.next()) {
+				log.debug("Product/invoice combo already exists, initial quantity: " + rs.getInt("Quantity") +"; adding to quantity of existing entry");
+				query = "UPDATE Purchases SET Quantity = ? WHERE InvoiceID = ? AND ProductID = ?";
+				ps = conn.prepareStatement(query);
+				ps.setInt(1, (rs.getInt("Quantity") + quantity));
+				ps.setString(2, invoiceCode);
+				ps.setString(3, productCode);
+				ps.execute();
+				
+				query = "SELECT * FROM Purchases WHERE InvoiceID = ? AND ProductID = ?";
+				ps = conn.prepareStatement(query);
+				ps.setString(1, invoiceCode);
+				ps.setString(2, productCode);
+				ResultSet rs1 = ps.executeQuery();
+				
+				if (rs1.next())
+					log.debug("Current quantity: " + rs1.getInt("Quantity"));
+			}
+			else {
+			//Insert into Purchases
+				query = "INSERT INTO Purchases(InvoiceID, Quantity, ProductID) VALUES (?, ?, ?)";
+				ps = conn.prepareStatement(query);
+				ps.setString(1, invoiceCode);
+				ps.setInt(2, quantity);	
+				ps.setString(3, productCode);					
+				ps.execute();
+			}
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		finally {
+			ps.close();
+			conn.close();
+		}
+	}
 
 }

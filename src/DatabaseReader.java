@@ -256,24 +256,23 @@ public class DatabaseReader {
 			while (rs.next()) {
 				String invoiceCode = rs.getString("InvoiceID");
 				if (invoiceCode == null) {
-					log.debug("Invoice code not found");
+					log.error("Invoice code not found");
 				}
 				String customerCode = rs.getString("CustomerID");
 				if (customerCode == null) {
-					log.debug("Customer code not found");
+					log.error("Customer code not found");
 				}
 				String salesCode = rs.getString("SalespersonID");
 				if (salesCode == null) {
-					log.debug("Person code not found");
+					log.error("Person code not found");
 				}
 				String invoiceDate = rs.getString("Date");
 				if (invoiceDate == null) {
-					log.debug("Invoice date not found");
+					log.error("Invoice date not found");
 				}
 				
 				double totalSubtotal = 0;
 				double totalTaxes = 0;
-				double totalDiscount = 0;
 				
 				// Getting linked ticket, if any
 				String linkedTicket = rs.getString("LinkedTicket");
@@ -294,22 +293,17 @@ public class DatabaseReader {
 							MovieTicket m = new MovieTicket((MovieTicket)p);
 							m.setQuantity(productRs.getInt("Quantity"));
 							String logString = m.getName() + ", " + m.getCode();
-							log.debug("MovieTicket added: " + logString);
+							log.info("MovieTicket added: " + logString);
 							
 							double subtotal = m.getCost()*m.getQuantity();
-							log.debug("Cost: " + subtotal);
+							log.info("Cost: " + subtotal);
 							totalSubtotal += subtotal;
-							log.debug("Current subtotal: " + totalSubtotal);
+							log.info("Current subtotal: " + totalSubtotal);
 							
 							double taxes = 0.06*subtotal;
-							log.debug("Taxes: " + taxes);
+							log.info("Taxes: " + taxes);
 							totalTaxes += taxes;
-							log.debug("Current subtotal: " + totalSubtotal);
-							
-							double discount = m.getDiscount()*m.getQuantity();
-							log.debug("Discount: " + discount);
-							totalDiscount += discount;
-							log.debug("Current discount: " + totalDiscount);
+							log.info("Current subtotal: " + totalSubtotal);
 							
 							invoiceProducts.add(m);
 						}
@@ -330,18 +324,18 @@ public class DatabaseReader {
 							Refreshment r = new Refreshment((Refreshment)p);
 							r.setQuantity(productRs.getInt("Quantity"));
 							String logString = r.getName() + ", " + r.getCode();
-							log.debug("Refreshment added: " + logString);
+							log.info("Refreshment added: " + logString);
 							
 
 							double subtotal = r.getCost()*r.getQuantity();
-							log.debug("Cost: " + subtotal);
+							log.info("Cost: " + subtotal);
 							totalSubtotal += subtotal;
-							log.debug("Current subtotal: " + totalSubtotal);
+							log.info("Current subtotal: " + totalSubtotal);
 							
 							double taxes = 0.04*subtotal;
-							log.debug("Taxes: " + taxes);
+							log.info("Taxes: " + taxes);
 							totalTaxes += taxes;
-							log.debug("Current taxes: " + totalTaxes);
+							log.info("Current taxes: " + totalTaxes);
 
 							invoiceProducts.add(r);
 						}
@@ -362,17 +356,17 @@ public class DatabaseReader {
 							ParkingPass park = new ParkingPass((ParkingPass)p);
 							park.setQuantity(productRs.getInt("Quantity"));
 							String logString = park.getCode();
-							log.debug("ParkingPass added: " + logString);
+							log.info("ParkingPass added: " + logString);
 
 							double subtotal = park.getQuantity()*park.getCost();
-							log.debug("Cost: " + subtotal);
+							log.info("Cost: " + subtotal);
 							totalSubtotal += subtotal;
-							log.debug("Current subtotal: " + totalSubtotal);
+							log.info("Current subtotal: " + totalSubtotal);
 							
 							double taxes = 0.04*subtotal;
-							log.debug("Taxes: " + taxes);
+							log.info("Taxes: " + taxes);
 							totalTaxes += taxes;
-							log.debug("Current taxes: " + totalTaxes);
+							log.info("Current taxes: " + totalTaxes);
 
 							invoiceProducts.add(park);
 						}
@@ -393,18 +387,18 @@ public class DatabaseReader {
 							SeasonPass s = new SeasonPass((SeasonPass)p, invoiceDate);
 							s.setQuantity(productRs.getInt("Quantity"));
 							String logString = s.getCode();
-							log.debug("SeasonPass added: " + logString);
+							log.info("SeasonPass added: " + logString);
 							
 							// Subtotal includes the convenience fee and prorated price
 							double subtotal = (s.getCost()-s.getProrated()+8)*s.getQuantity();
-							log.debug("Cost: " + subtotal);
+							log.info("Cost: " + subtotal);
 							totalSubtotal += subtotal;
-							log.debug("Current subtotal: " + totalSubtotal);
+							log.info("Current subtotal: " + totalSubtotal);
 							
 							double taxes = 0.06*subtotal;
-							log.debug("Taxes: " + taxes);
+							log.info("Taxes: " + taxes);
 							totalTaxes += taxes;
-							log.debug("Current taxes: " + totalTaxes);
+							log.info("Current taxes: " + totalTaxes);
 
 							invoiceProducts.add(s);
 						}
@@ -418,7 +412,7 @@ public class DatabaseReader {
 				// Setting subtotal as accumulated by above
 				invoice.setSubtotal(totalSubtotal);
 				// Setting discounts
-				invoice.setDiscount(totalDiscount);
+				invoice.setDiscount();
 				// Setting any necessary fees
 				invoice.setFees();
 				// Setting total
@@ -438,8 +432,8 @@ public class DatabaseReader {
 			ps.close();
 			conn.close();
 		}
-//		writeInvoiceSummary(invoices);
-//		writeInvoiceIndividual(invoices);
+		writeInvoiceSummary(invoices);
+		writeInvoiceIndividual(invoices);
 	}
 	
 	public static void writeInvoiceSummary(ArrayList<Invoice> invoices) {
@@ -663,7 +657,6 @@ public class DatabaseReader {
 		
 		log.info("Reading invoices");
 		readInvoices();
-		InvoiceData.addParkingPassToInvoice("INV001", "66AS", 1, null);
 		log.info("Program stopping");
 	}
 }

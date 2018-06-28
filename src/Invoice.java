@@ -20,7 +20,7 @@ public class Invoice extends DatabaseReader {
 	private Person custPerson;
 	private double parkingTaxes;
 	private boolean parkingDeficit;
-	private String linkedTicket;
+	private Product linkedTicket;
 
 	//set all the information
 	public Invoice(String invoiceCode, String customerCode, String persCode, 
@@ -180,8 +180,34 @@ public class Invoice extends DatabaseReader {
 		return discount;
 	}
 
-	public void setDiscount(double discount) {
-		this.discount = discount;
+	public void setDiscount() {
+		if (this.getCustomer().getType().equals("S")) {
+			this.discount += this.taxes;
+		}
+		// If there is a linked ticket, refreshments are 5% off
+		if (this.linkedTicket != null) {
+			double refreshmentTotal = 0;
+			for (Product p: invoiceProducts) {
+				if (p instanceof Refreshment) {
+					refreshmentTotal += p.getCost();
+				}
+			}
+			// amount discounted for refreshments
+			double refreshmentDiscount = refreshmentTotal*0.05;
+			this.discount += refreshmentDiscount;
+		}
+		// If tickets are on Tue/Thur, they are 7% off
+		for (Product p: invoiceProducts) {
+			if (p instanceof MovieTicket) {
+				if (((MovieTicket)p).isTueThur()) {
+					this.discount += p.getCost()*0.07;
+				}
+			}
+		}
+	}
+
+	private void setDiscount(double d) {
+		this.discount += d;
 	}
 
 	public double getTotal() {
@@ -192,10 +218,10 @@ public class Invoice extends DatabaseReader {
 		if (customer instanceof Student) {
 			double total = this.subtotal * 0.92;
 			setDiscount((this.subtotal-total));
-			this.total = this.subtotal + this.fees - this.discount;
+			this.total = this.subtotal + this.fees + this.taxes - this.discount;
 		}
 		else {
-			this.total = subtotal + fees + taxes - discount;
+			this.total = this.subtotal + this.fees + this.taxes - this.discount;
 		}
 	}
 
@@ -204,8 +230,7 @@ public class Invoice extends DatabaseReader {
 	}
 	
 	// Sets parking discount to the cost and quantity of the linked ticket
-	
-	public void setParkingDiscount(Product linkedTicket) {
+	public void setParkingDiscount() {
 		this.parkingDiscount = linkedTicket.getQuantity()*linkedTicket.getCost();
 	}
 
@@ -225,11 +250,26 @@ public class Invoice extends DatabaseReader {
 		this.parkingTaxes += parkingTaxes;
 	}
 
-	public String getLinkedTicket() {
+	public Product getLinkedTicket() {
 		return linkedTicket;
 	}
 
 	public void setLinkedTicket(String linkedTicket) {
-		this.linkedTicket = linkedTicket;
+		Product product = null;
+		if (linkedTicket == null) {
+			return;
+		}
+		else {
+			for (Product p: products) {
+				if (p.getCode().equals(linkedTicket))
+					if (p instanceof MovieTicket) {
+						product = new MovieTicket((MovieTicket)p);
+					}
+					else if (p instanceof SeasonPass) {
+						product = new SeasonPass((SeasonPass)p, this.invoiceDate);
+					}
+			}
+			this.linkedTicket = product;
+		}
 	}
 }

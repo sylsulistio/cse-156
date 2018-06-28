@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--sources:https://www.mkyong.com/logging/logback-xml-example/
-			https://examples.javacodegeeks.com/enterprise-java/logback/logback-rollingfileappender-example/
--->
+			https://logback.qos.ch/manual/appenders.html-->
 <configuration>
 
 	<property name="DEV_HOME" value="data" />
@@ -14,25 +13,13 @@
 		</layout>
 	</appender>
 	
-	<appender name="FILE-AUDIT"
-		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${DEV_HOME}/debug.log</file>
+	<appender name="FILE-AUDIT" class="ch.qos.logback.core.FileAppender">
+		<file>debug.log</file>
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<Pattern>
 				%d{yyyy-MM-dd HH:mm:ss} - %msg%n
 			</Pattern>
 		</encoder>
-
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<!-- rollover daily -->
-			<fileNamePattern>${DEV_HOME}/archived/debug.%d{yyyy-MM-dd}.%i.log
-                        </fileNamePattern>
-			<timeBasedFileNamingAndTriggeringPolicy
-				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-				<maxFileSize>10MB</maxFileSize>
-			</timeBasedFileNamingAndTriggeringPolicy>
-		</rollingPolicy>
-
 	</appender>
 
 	<logger name="com.jvc.ext" level="debug"
