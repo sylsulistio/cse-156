@@ -646,6 +646,7 @@ public class DatabaseReader {
 		System.out.println(invoiceString);
 	}
 	public static void main(String[] args) throws SQLException {
+		
 		log.info("Program started");
 		
 		DatabaseReader.readPersons();

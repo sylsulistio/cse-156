@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--sources:https://examples.javacodegeeks.com/core-java/logback-file-appender-example/
+			https://logback.qos.ch/manual/appenders.html
+			https://www.mkyong.com/logging/logback-xml-example/-->
+<configuration>
+
+   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder>
+         <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+      </encoder>
+   </appender>
+
+   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+      <file> debug.log </file>
+      <append>true</append>
+      <encoder>
+         <pattern>%-4relative [%thread] %-5level %logger{35} - %msg%n</pattern>
+      </encoder>
+   </appender>
+
+   <root level="info">
+      <appender-ref ref="FILE" />
+   </root>
+   
+   <logger name="com.jvc.ext" level="debug"
+		additivity="false">
+		<appender-ref ref="FILE" />
+	</logger>
+	
+	<logger name="com.jvc.ext" level="error"
+		additivity="false">
+		<appender-ref ref="FILE" />
+	</logger>
+
+</configuration>
