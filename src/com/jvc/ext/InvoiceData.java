@@ -135,8 +135,6 @@ public class InvoiceData {
 				log.debug("Street name: " + rs.getString("Street"));
 			}
 			
-			ps = null;
-			rs = null;
 			// inserting blank email field
 			query = "INSERT INTO Emails(Email) VALUES (null)";
 			ps = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
@@ -502,7 +500,7 @@ public class InvoiceData {
 		Connection conn = ConnectionFactory.getOne();
 		PreparedStatement ps = null;
 		//Function to delete all emails from the Emails table, as every email is connected to a person
-		String query = "TRUNCATE table Invoices";
+		String query = "DELETE FROM Invoices";
 		ps = conn.prepareStatement(query);
 		
 		ps.close();
@@ -511,10 +509,63 @@ public class InvoiceData {
 
 	/**
 	 * 11. Adds an invoice record to the database with the given data.
+	 * @throws SQLException 
 	 */
-	public static void addInvoice(String invoiceCode, String customerCode, String salesPersonCode, String invoiceDate) {
-		
-	}
+	public static void addInvoice(String invoiceCode, String customerCode, String salesPersonCode, String invoiceDate) throws SQLException {
+
+		//Connect to Database
+			Connection conn = ConnectionFactory.getOne();
+			PreparedStatement ps = null;
+			ResultSet  rs = null;
+			String query = "SELECT InvoiceID FROM Invoices WHERE InvoiceID = ?";
+			
+		//Main Insertion:
+			try {
+				ps = conn.prepareStatement(query);
+				ps.setString(1, invoiceCode);
+				rs = ps.executeQuery();
+				
+				if (rs.next()) {
+					log.debug("Invoice already exists!");
+				}
+				else {
+					query = "SELECT CustomerID FROM Customers WHERE CustomerID = ?";
+					ps = conn.prepareStatement(query);
+					ps.setString(1, customerCode);
+					rs = ps.executeQuery();
+					
+					if (rs.next()) {
+						query = "INSERT INTO Invoices(InvoiceID, CustomerID, Date, SalespersonID) VALUES (?, ?, ?, ?)";
+						ps = conn.prepareStatement(query);
+						ps.setString(1, invoiceCode);
+						ps.setString(2, customerCode);
+						ps.setString(3, invoiceDate);
+						ps.setString(4, salesPersonCode);
+						ps.execute();
+					}
+					else {
+						log.debug("Customer does not exist!");
+					}
+				}
+				
+				query = "SELECT * FROM Invoices WHERE InvoiceID = ?";
+				ps = conn.prepareStatement(query);
+				ps.setString(1, invoiceCode);
+				rs = ps.executeQuery();
+				
+				while(rs.next()) {
+					log.debug("Invoice date: " + rs.getString("Date"));
+				}
+			}
+			catch(SQLException e) {
+				e.printStackTrace();
+			}
+			finally {
+				rs.close();
+				ps.close();
+				conn.close();
+			}
+		}
 
 	/**
 	 * 12. Adds a particular movieticket (corresponding to <code>productCode</code>

@@ -663,7 +663,7 @@ public class DatabaseReader {
 		
 		log.info("Reading invoices");
 		readInvoices();
-		InvoiceData.addPerson("PERS", "firstName", "lastName", "street", "city", "ST", "56489", "country");
+		InvoiceData.addInvoice("INV010", "C001", "FL36", "1970-01-12");
 		log.info("Program stopping");
 	}
 }
