@@ -663,7 +663,8 @@ public class DatabaseReader {
 		
 		log.info("Reading invoices");
 		readInvoices();
-		InvoiceData.removeAllProducts();
+		InvoiceData.addMovieTicket("AAAA", "9999-99-99 00:00", "movie called movie", "street", 
+				"city", "ST", "34012", "country", "13S", 25);
 		log.info("Program stopping");
 	}
 }

@@ -491,47 +491,71 @@ public static void removeAllCustomers() throws SQLException {
 	 */
 	public static void addMovieTicket(String productCode, String dateTime, String movieName, String street, 
 			String city,String state, String zip, String country, String screenNo, double pricePerUnit) throws SQLException {
-	//Connect to Database
+	// Connect to Database
 		Connection conn = ConnectionFactory.getOne();
 		PreparedStatement ps = null;
-		ResultSet  rs = ps.executeQuery();
+		ResultSet rs = null;
 		
-	//Inserting Address First
-		String query = "INSERT INTO Address(Street, City, State, Zip, Country) VALUES "
-			+ "(?, ?, ?, ?, ?)";
-		ps.setString(1, street);
-		ps.setString(2, city);
-		ps.setString(3, state);
-		ps.setString(4, zip);
-		ps.setString(5, country);
-		ps.execute();
-		
-	//next, to find the address ID. We can do this by finding the last input address ID from the address we created
-		
-		query = "Select AddressKey FROM Address WHERE Address.AddressKey = LAST_INSERT_ID";
-		int addressID = 999;
-		rs =ps.executeQuery();
-			
-		if(rs.next()){
-			addressID = rs.getInt("AddressKey");
-		}
-		
-	//Now for the main insertion:
-		query = "INSERT INTO MovieTicket(ProductID, Date, Name, TheatreNum, pricePerUnit, AddressKey) VALUES "
-				+ "?, ?, ?, ?, ?, ?";
-				
+	// Check to see if the MovieTicket already exists in Products table
+		String query = "SELECT ProductID FROM Products WHERE ProductID = ?";
+		ps = conn.prepareStatement(query);
 		ps.setString(1, productCode);
-		ps.setString(2, dateTime);
-		ps.setString(3, movieName);
-		ps.setString(4, screenNo);
-		ps.setDouble(5, pricePerUnit);
-		ps.setInt(6, addressID);
-		ps.execute();
+		rs = ps.executeQuery();
+		if (rs.next()) {
+			log.debug("Product with this ProductCode already exists!");
+		}
+		else {
+		// Inserting Address First
+			query = "INSERT INTO Address(Street, City, State, Zip, Country) VALUES "
+					+ "(?, ?, ?, ?, ?)";
+			ps = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
+			ps.setString(1, street);
+			ps.setString(2, city);
+			ps.setString(3, state);
+			ps.setString(4, zip);
+			ps.setString(5, country);
+			ps.execute();
+			
+			rs = ps.getGeneratedKeys();
+			int addressID = 0;
+			
+			if(rs.next()) {
+				log.debug("rs exists");
+				addressID = rs.getInt(1);
+				log.debug("Got address key: " + addressID);
+			}
 		
-	//Finally, insert the product code into Products:
-		query = "INSERT INTO Products(ProductID) VALUES (?)";
-		ps.setInt(1, addressID);
-		
+		// Insert the product code into Products:
+			query = "INSERT INTO Products(ProductID) VALUES (?)";
+			ps = conn.prepareStatement(query);
+			ps.setString(1, productCode);
+			ps.execute();
+			log.debug("Inserted into Products");
+			
+					
+		// Now for the main insertion:
+			query = "INSERT INTO MovieTicket(ProductID, Date, Name, AddressKey, TheatreNum, Cost) VALUES "
+					+ "(?, ?, ?, ?, ?, ?)";
+			ps = conn.prepareStatement(query);
+			ps.setString(1, productCode);
+			ps.setString(2, dateTime);
+			ps.setString(3, movieName);
+			ps.setInt(4, addressID);
+			ps.setString(5, screenNo);
+			ps.setDouble(6, pricePerUnit);
+			log.debug("Strings set");
+			ps.execute();
+			
+		// Checking to see if it has been inserted
+			query = "SELECT * FROM MovieTicket WHERE ProductID = ?";
+			ps = conn.prepareStatement(query);
+			ps.setString(1, productCode);
+			rs = ps.executeQuery();
+			
+			if (rs.next()) {
+				log.debug("MovieTicket " + rs.getString("ProductID") + ": " + rs.getString("Name") + " inserted");
+			}
+		}
 	//done
 		rs.close();
 		ps.close();
