@@ -564,34 +564,55 @@ public static void removeAllCustomers() throws SQLException {
 
 	/**
 	 * 7. Adds a seasonPass record to the database with the provided data.
+	 * @throws SQLException 
 	 */
 	public static void addSeasonPass(String productCode, String name, 
-			String seasonStartDate, String seasonEndDate,	double cost) {
+			String seasonStartDate, String seasonEndDate, double cost) throws SQLException {
 		
 	//Connect to Database
 		Connection conn = ConnectionFactory.getOne();
 		PreparedStatement ps = null;
-		ResultSet  rs = ps.executeQuery();
-		
-	//Main Insertion:	
-		String query = "INSERT INTO SeasonPass(ProductID, Name, StartDate, EndDate, Cost) VALUES "
-				+ "?, ?, ?, ?, ?";
-		
+		ResultSet rs = null;
+		// Checking if it already exists
+		String query = "SELECT ProductID FROM Products WHERE ProductID = ?";
+		ps = conn.prepareStatement(query);
 		ps.setString(1, productCode);
-		ps.setString(2, name);
-		ps.setString(3, seasonStartDate);
-		ps.setString(4, seasonEndDate);
-		ps.setDouble(5, cost);
-		ps.execute();
-		
-	//Finally, insert the product code into Products:
-		query = "INSERT INTO Products(ProductID) VALUES (?)";
-		ps.setString(1, addressID);
-	
-	//done
-		rs.close();
-		ps.close();
-		conn.close();				
+		rs = ps.executeQuery();
+		if (rs.next()) {
+			log.debug("Product with this ProductCode already exists!");
+		}
+		else {
+		// Insert the product code into Products:
+			query = "INSERT INTO Products(ProductID) VALUES (?)";
+			ps = conn.prepareStatement(query);
+			ps.setString(1, productCode);
+			ps.execute();
+			
+		//Main Insertion:	
+			query = "INSERT INTO SeasonPass(ProductID, Name, StartDate, EndDate, Cost) VALUES "
+					+ "(?, ?, ?, ?, ?)";
+
+			ps = conn.prepareStatement(query);
+			ps.setString(1, productCode);
+			ps.setString(2, name);
+			ps.setString(3, seasonStartDate);
+			ps.setString(4, seasonEndDate);
+			ps.setDouble(5, cost);
+			ps.execute();
+		// Checking to see if it has been inserted
+			query = "SELECT * FROM SeasonPass WHERE ProductID = ?";
+			ps = conn.prepareStatement(query);
+			ps.setString(1, productCode);
+			rs = ps.executeQuery();
+			
+			if (rs.next()) {
+				log.debug("SeasonPass " + rs.getString("ProductID") + ": " + rs.getString("Name") + " inserted");
+			}
+		//done
+			rs.close();
+			ps.close();
+			conn.close();				
+		}
 	}
 
 	/**
@@ -796,8 +817,63 @@ public static void removeAllCustomers() throws SQLException {
      * invoice corresponding to the provided <code>invoiceCode</code> with the given
      * number of quantity.
      * NOTE: ticketCode may be null
+     * @throws SQLException 
      */
-    public static void addParkingPassToInvoice(String invoiceCode, String productCode, int quantity, String ticketCode) {}
+    public static void addParkingPassToInvoice(String invoiceCode, String productCode, int quantity, String ticketCode) throws SQLException {//Connect to Database	
+		Connection conn = ConnectionFactory.getOne();
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		
+		try {
+			//Insert into Purchases
+			String query = "SELECT * FROM Purchases WHERE InvoiceID = ? AND ProductID = ?";
+			ps = conn.prepareStatement(query);
+			ps.setString(1, invoiceCode);
+			ps.setString(2, productCode);
+			rs = ps.executeQuery();
+			
+			if (rs.next()) {
+				log.debug("Product/invoice combo already exists, initial quantity: " + rs.getInt("Quantity") +"; adding to quantity of existing entry");
+				query = "UPDATE Purchases SET Quantity = ? WHERE InvoiceID = ? AND ProductID = ?";
+				ps = conn.prepareStatement(query);
+				ps.setInt(1, (rs.getInt("Quantity") + quantity));
+				ps.setString(2, invoiceCode);
+				ps.setString(3, productCode);
+				ps.execute();
+				
+				query = "SELECT * FROM Purchases WHERE InvoiceID = ? AND ProductID = ?";
+				ps = conn.prepareStatement(query);
+				ps.setString(1, invoiceCode);
+				ps.setString(2, productCode);
+				ResultSet rs1 = ps.executeQuery();
+				
+				if (rs1.next())
+					log.debug("Current quantity: " + rs1.getInt("Quantity"));
+			}
+			else {
+			//Insert into Purchases
+				query = "INSERT INTO Purchases(InvoiceID, Quantity, ProductID) VALUES (?, ?, ?)";
+				ps = conn.prepareStatement(query);
+				ps.setString(1, invoiceCode);
+				ps.setInt(2, quantity);	
+				ps.setString(3, productCode);					
+				ps.execute();	
+				
+				query = "UPDATE Invoices SET LinkedTicket = ? WHERE InvoiceID = ?";
+				ps = conn.prepareStatement(query);
+				ps.setString(1, ticketCode);
+				ps.setString(2, invoiceCode);
+				ps.execute();		
+			}
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		finally {
+			ps.close();
+			conn.close();
+		}
+		}
 	
     /**
      * 15. Adds a particular refreshment (corresponding to <code>productCode</code> to an 
