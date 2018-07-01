@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.jvc.ext.InvoiceData;
 
-public class Invoice extends DatabaseReader {
+public class Invoice extends DatabaseReader implements Comparable<Invoice> {
 	static final Logger log = LoggerFactory.getLogger(InvoiceData.class);
 	private String invoiceCode;
 	private String invoiceDate;
@@ -303,4 +303,21 @@ public class Invoice extends DatabaseReader {
 			return;
 		}
 	}
+	
+	/**
+     * Complete the implementation of this method that will be used for sorting
+     * using the java.util.Collections.sort method.
+     * @param o
+     * @return
+     */
+   @Override
+   public int compareTo(Invoice i) {
+   	if (i.getTotal() < this.getTotal()) {
+   		return -1;
+   	}
+   	else if (i.getTotal() == this.getTotal()) {
+   		return 0;
+   	}
+   	else return 1;
+   }
 }
