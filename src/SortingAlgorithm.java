@@ -1,38 +1,37 @@
-import java.util.Arrays;
-
 public class SortingAlgorithm {
-	public static Invoice[] quickSort(Invoice[] list) {
-		Invoice[] result = Arrays.copyOf(list, list.length);
-		quickSortRecursive(result, 0, result.length-1);
+	public static InvoiceList<Invoice> quickSort(InvoiceList<Invoice> list) {
+		InvoiceList<Invoice> result = new InvoiceList<Invoice>(list);
+		quickSortRecursive(result, 0, result.getSize()-1);
 		return result;
 	}
 	
-	private static void quickSortRecursive(Invoice list[], int low, int high) {
-		int key = partition(list, low, high);
+	private static void quickSortRecursive(InvoiceList<Invoice> result, int low, int high) {
+		int key = partition(result, low, high);
 		if (low < key-1) {
-			quickSortRecursive(list, low, key-1);
+			quickSortRecursive(result, low, key-1);
 		}
 		if (key < high) {
-			quickSortRecursive(list, key, high);
+			quickSortRecursive(result, key, high);
 		}
 	}
 	
-	private static int partition(Invoice[] list, int left, int right){
+	private static int partition(InvoiceList<Invoice> result, int left, int right){
 		int i = left, j = right;
 		Invoice temp;
-		Invoice pivot = list[(left + right)/2];
+		int pivotIndex = (left + right)/2;
+		Invoice pivot = result.get(pivotIndex);
 		
 		while (i <= j) {
-			while (list[i].compareTo(pivot) < 0) {
+			while (result.get(i).compareTo(pivot) < 0) {
 				i++;
 			}
-			while (list[j].compareTo(pivot) > 0) {
+			while (result.get(j).compareTo(pivot) > 0) {
 				j--;
 			}
 			if (i <= j) {
-				temp = list[i];
-				list[i] = list[j];
-				list[j] = temp;
+				temp = result.get(i);
+				result.alterAtIndex(i, result.get(j));
+				result.alterAtIndex(j, temp);
 				i++;
 				j--;
 			}

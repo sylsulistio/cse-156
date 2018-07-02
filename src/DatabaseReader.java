@@ -250,7 +250,7 @@ public class DatabaseReader {
 		ResultSet  rs = ps.executeQuery();
 		
 		Invoice invoice = null;
-		ArrayList<Invoice> invoices = new ArrayList<Invoice>();
+		InvoiceList<Invoice> invoices = new InvoiceList<Invoice>();
 		
 		try {
 			while (rs.next()) {
@@ -418,8 +418,10 @@ public class DatabaseReader {
 				// Setting total
 				invoice.setTotal();
 					
-				invoices.add(invoice);
+				invoices.addToEnd(invoice);
 			}
+			
+			invoices.sort();
 		}
 		catch(SQLException e) {
 			e.printStackTrace();
@@ -436,7 +438,7 @@ public class DatabaseReader {
 		writeInvoiceIndividual(invoices);
 	}
 	
-	public static void writeInvoiceSummary(ArrayList<Invoice> invoices) {
+	public static void writeInvoiceSummary(InvoiceList<Invoice> invoices) {
 		StringBuilder invoiceString = new StringBuilder();
 		
 		invoiceString.append("========================\n"
@@ -457,7 +459,7 @@ public class DatabaseReader {
 		df.setMaximumFractionDigits(2);
 		df.setMinimumFractionDigits(2);
 		
-		for (int i = 0; i < invoices.size(); i++) {
+		for (int i = 0; i < invoices.getSize(); i++) {
 			String invCode = invoices.get(i).getInvoiceCode();
 			String custName = invoices.get(i).getCustomer().getName() + " [" + invoices.get(i).getCustomer().getType() + "]";
 			String persName = invoices.get(i).getPerson().getName();
@@ -483,10 +485,10 @@ public class DatabaseReader {
 		System.out.println(invoiceString + "\n");
 	}
 				     
-	public static void writeInvoiceIndividual(ArrayList<Invoice> invoices) {
+	public static void writeInvoiceIndividual(InvoiceList<Invoice> invoices) {
 		StringBuilder invoiceString = new StringBuilder();
 		invoiceString.append("Individual Invoice Detail Reports\n" + "==================================\n");
-		for (int i = 0; i < invoices.size(); i++) {
+		for (int i = 0; i < invoices.getSize(); i++) {
 			String invCode = invoices.get(i).getInvoiceCode();
 			String custName = invoices.get(i).getCustomer().getName() + " [" + invoices.get(i).getCustomer().getType() + "]";
 			String custCode = "(" + invoices.get(i).getCustomer().getCode() + ")";		

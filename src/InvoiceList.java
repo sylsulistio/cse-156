@@ -15,7 +15,19 @@ public class InvoiceList<T> implements Iterable<T>{
 		end = null;
 		size = 0;
 	}
-	
+
+	public InvoiceList(InvoiceList<Invoice> list) {
+		Iterator<Invoice> iterator = list.iterator();
+		InvoiceNode start = new InvoiceNode((T) iterator.next(), null);
+		this.start = start;
+		size++;
+		while (iterator.hasNext()) {
+			this.addToEnd((T) iterator.next());
+			size++;
+		}
+		this.end = findNode(this.size);
+	}
+
 	public boolean isEmpty() {
 		return start == null;
 	}
@@ -24,6 +36,7 @@ public class InvoiceList<T> implements Iterable<T>{
 		return size;
 	}
 
+	// Add to start
 	public void addToStart(T inv) {
 		InvoiceNode insert = new InvoiceNode(inv, null);
 		size++;
@@ -43,6 +56,7 @@ public class InvoiceList<T> implements Iterable<T>{
 		log.info("Item added: " + ((Invoice) insert.getInvoice()).getInvoiceCode());
 	}
 	
+	// Add to end
 	public void addToEnd(T inv) {
 		InvoiceNode insert = new InvoiceNode(inv, null);
 		size++;
@@ -51,7 +65,7 @@ public class InvoiceList<T> implements Iterable<T>{
 			end = start;
 		}
 		/**
-		 * Newly added node becomes the start node and sets 
+		 * Newly added node becomes the end node and sets 
 		 * the 'next' pointer to the previous start node
 		 */
 		else {
@@ -62,6 +76,7 @@ public class InvoiceList<T> implements Iterable<T>{
 		log.info("Item added: " + ((Invoice) insert.getInvoice()).getInvoiceCode());
 	}
 	
+	// Add to index
 	public boolean addToIndex(T inv, int index) {
 		InvoiceNode insert = new InvoiceNode(inv, null);
 		if (index < 1 || index > size) {
@@ -89,22 +104,24 @@ public class InvoiceList<T> implements Iterable<T>{
 	
 	// Find by invoice code
 	public T find(String invCode) {
-		InvoiceNode search = this.start;
 		ListIterator iterator = new ListIterator();
 		while (iterator.hasNext()) {
+			
 			// Gets current invoice as an invoice
-			Invoice currentInv = (Invoice) iterator.current.getInvoice();
+			T currentInv = iterator.current.getInvoice();
+			
 			// Compares invoice code from arguments to current invoice code
-			if (currentInv.getInvoiceCode().equals(invCode)) {
-				return search.getInvoice();
+			if (((Invoice) currentInv).getInvoiceCode().equalsIgnoreCase(invCode)) {
+				return currentInv;
 			}
+			currentInv = iterator.next();
 		}
 		log.error("Invoice not found!");
 		return null;
 	}
 
 	// Find by index
-	public T find(int index) {
+	public T get(int index) {
 		InvoiceNode search = start;
 		
 		for (int i = 0; i < index; i++) {
@@ -117,6 +134,74 @@ public class InvoiceList<T> implements Iterable<T>{
 		}
 		
 		return search.getInvoice();
+	}
+	
+	// Find node by index
+	public InvoiceNode findNode(int index) {
+		InvoiceNode search = start;
+		
+		for (int i = 0; i < index; i++) {
+			if (search.getNext() == null) {
+				log.error("Invoice not found!");
+				return null;
+			}
+			
+			search = search.getNext();
+		}
+		
+		return search;
+	}
+	
+	// Delete from beginning
+	public void removeFromStart() {
+		start = start.getNext();
+		size--;
+		return;
+	}
+	
+	// Delete from end
+	public void removeFromEnd() {
+		InvoiceNode currentNode = findNode(size-1);
+		currentNode.setNext(null);
+		end = currentNode;
+		size--;
+		return;
+	}
+	// Delete by index
+	public boolean removeAtIndex(int index) {
+		InvoiceNode previousNode = start;
+		
+		if (index < 1 || index > size) {
+			log.error("RemoveAtIndex error: Index out of bounds!");
+			return false;
+		}
+		
+		for (int i = 0; i < index-1; i++) {
+			if (previousNode.getNext() == null) {
+				log.error("RemoveAtIndex error: No node to delete!");
+				return false;
+			}
+			previousNode = previousNode.getNext();
+		}
+		
+		InvoiceNode removedNode = previousNode.getNext();
+		InvoiceNode nextNode = removedNode.getNext();
+		previousNode.setNext(nextNode);
+		log.info("Node at index " + index + " removed successfully");
+		size--;
+		return true;
+	}
+	
+	// Set by index
+	public void alterAtIndex(int index, T data) {
+		InvoiceNode changedNode = findNode(index);
+		if (changedNode == null) {
+			log.error("Node not found!");
+			return;
+		}
+		changedNode.setInvoice(data);
+		log.info("Data at index changed");
+		return;
 	}
 	
 	// Iterator class
@@ -174,5 +259,9 @@ public class InvoiceList<T> implements Iterable<T>{
 		public T getInvoice() {
 			return invoice;
 		}
+	}
+
+	public void sort() {
+		SortingAlgorithm.quickSort((InvoiceList<Invoice>)this);
 	}
 }
